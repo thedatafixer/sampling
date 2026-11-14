@@ -1,0 +1,1259 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Elegir el muestreo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* Idea de layout: una columna de lectura y, a la derecha, el mapa del sistema estudiado como pieza fija. */
+:root{
+  --bg:#f1f4f0; --surface:#ffffff; --surface-2:#e8eee7; --ink:#1a2420; --muted:#566259; --line:#d3dbd2;
+  --accent:#1d5d78; --accent-ink:#ffffff;
+  --bosque:#3f7d5a; --pastizal:#c9a646; --roquedal:#8a93a0; --orq:#8e3f8a; --agua:#2f78b5;
+  --good:#2b7a4b; --warn:#9a5f12; --bad:#b03a2e;
+  --display:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  --body:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#121815; --surface:#1a221e; --surface-2:#232d28; --ink:#e7ede9; --muted:#9aa8a0; --line:#2f3b35;
+    --accent:#6bb6d6; --accent-ink:#0c1a21;
+    --bosque:#5aa57a; --pastizal:#d9b85c; --roquedal:#9aa3b0; --orq:#c987c4; --agua:#6aaee0;
+    --good:#5bc487; --warn:#e0a14a; --bad:#ee7b6d;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#121815; --surface:#1a221e; --surface-2:#232d28; --ink:#e7ede9; --muted:#9aa8a0; --line:#2f3b35;
+  --accent:#6bb6d6; --accent-ink:#0c1a21;
+  --bosque:#5aa57a; --pastizal:#d9b85c; --roquedal:#9aa3b0; --orq:#c987c4; --agua:#6aaee0;
+  --good:#5bc487; --warn:#e0a14a; --bad:#ee7b6d;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body)}
+.wrap{max-width:1060px;margin:0 auto;padding:22px 16px 56px}
+h1,h2,h3{font-family:var(--display);line-height:1.2;text-wrap:balance;margin:0}
+h1{font-size:2rem;letter-spacing:-.015em;font-weight:700}
+h2,h3{font-weight:600}
+.byline{font-size:.86rem;color:var(--muted);margin:6px 0 0}
+.credits{margin-top:36px;padding-top:16px;border-top:1px solid var(--line);font-size:.86rem;color:var(--muted)}
+.credits p{margin:0 0 4px}
+.credits strong{color:var(--ink);font-weight:600}
+h2{font-size:1.45rem;margin-bottom:6px}
+h3{font-size:1.1rem;margin-bottom:6px}
+p{margin:0 0 10px}
+.kicker{font-size:.8rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.lead{max-width:68ch;color:var(--muted);margin-top:8px}
+.cases{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0 4px;padding:0;list-style:none}
+.cases li{margin:0}
+.case{font:inherit;font-size:.82rem;border:1px solid var(--line);background:var(--surface);color:var(--muted);border-radius:999px;padding:4px 12px;cursor:pointer}
+.case:hover{border-color:var(--accent);color:var(--accent)}
+.case[aria-current="true"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink);font-weight:600;cursor:default}
+.steps{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:20px 0 16px}
+.stepbtn{font:inherit;font-size:.9rem;display:flex;gap:8px;align-items:center;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:7px 14px;border-radius:8px;cursor:pointer}
+.stepbtn b{display:inline-grid;place-items:center;width:22px;height:22px;border-radius:50%;background:var(--surface-2);font-size:.78rem}
+.stepbtn[aria-current="step"]{border-color:var(--accent);background:var(--accent);color:var(--accent-ink)}
+.stepbtn[aria-current="step"] b{background:rgba(255,255,255,.22);color:inherit}
+.stepbtn:disabled{opacity:.5;cursor:not-allowed}
+button:focus-visible,input:focus-visible,textarea:focus-visible,label:has(input:focus-visible){outline:3px solid var(--accent);outline-offset:2px}
+.panel{display:none}
+.panel.on{display:block}
+.grid{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,420px);gap:20px;align-items:start}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.stack{display:flex;flex-direction:column;gap:14px}
+.scroll{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:.92rem;font-variant-numeric:tabular-nums}
+th,td{text-align:left;padding:7px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-weight:600;color:var(--muted);font-size:.8rem}
+td.num,th.num{text-align:right}
+.dot{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+.d0{background:var(--bosque)}.d1{background:var(--pastizal)}.d2{background:var(--roquedal)}
+.dW{background:var(--agua)}.dA{background:var(--accent)}.dG{background:var(--good)}.dO{background:var(--orq)}.dB{background:var(--bad)}
+.map{width:100%;height:auto;display:block}
+.map .c0{fill:var(--bosque)}.map .c1{fill:var(--pastizal)}.map .c2{fill:var(--roquedal)}
+.map text{font:600 11px var(--body);fill:var(--surface)}
+.map text.lbl{fill:var(--muted);font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.84rem;color:var(--muted);margin-top:10px}
+.btn{font:inherit;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:var(--accent-ink);padding:9px 18px;border-radius:8px;cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.actions{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+.opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;border:0;padding:0;margin:0 0 14px}
+.opts legend{font-weight:600;margin-bottom:8px;padding:0}
+.opt{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:8px;padding:10px 12px;cursor:pointer;background:var(--surface)}
+.opt:has(input:checked){border-color:var(--accent);background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--accent)}
+.opt input{margin-top:5px;accent-color:var(--accent)}
+.opt strong{display:block;font-size:.95rem}
+.opt span{font-size:.86rem;color:var(--muted)}
+.slider{display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+.slider input[type=range]{flex:1 1 220px;accent-color:var(--accent)}
+.big{font:700 1.6rem var(--display);min-width:3ch}
+.track{height:12px;border-radius:999px;background:var(--surface-2);overflow:hidden;border:1px solid var(--line)}
+.fill{height:100%;background:var(--good)}
+.fill.warn{background:var(--warn)}
+.fill.bad{background:var(--bad)}
+.note{font-size:.88rem;color:var(--muted)}
+.tiles{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.tile{background:var(--surface-2);border-radius:8px;padding:10px 12px;display:flex;flex-direction:column;gap:2px}
+.tl{font-size:.78rem;color:var(--muted);font-weight:600}
+.tile strong{font:700 1.5rem var(--display)}
+.ts{font-size:.8rem;color:var(--muted)}
+.pill{display:inline-block;font-size:.8rem;font-weight:600;padding:2px 9px;border-radius:999px;border:1px solid currentColor}
+.pill.good{color:var(--good)}.pill.bad{color:var(--bad)}.pill.warn{color:var(--warn)}.pill.mute{color:var(--muted)}
+.fb{border-left:4px solid var(--accent);background:var(--surface-2);padding:12px 14px;border-radius:0 8px 8px 0}
+.fb p:last-child{margin:0}
+.hist{width:100%;height:auto;display:block}
+.hist .tick{font:500 11px var(--body);fill:var(--muted)}
+.cmp h3{font-size:.95rem;margin:12px 0 2px}
+.q{border-top:1px solid var(--line);padding-top:14px;margin-top:14px}
+.q:first-of-type{border-top:0;margin-top:0;padding-top:0}
+.q .ch{display:flex;flex-direction:column;gap:8px;margin:8px 0}
+.qb{font:inherit;text-align:left;border:1px solid var(--line);background:var(--surface);color:var(--ink);padding:9px 12px;border-radius:8px;cursor:pointer}
+.qb.ok{border-color:var(--good);box-shadow:inset 0 0 0 1px var(--good)}
+.qb.no{border-color:var(--bad);box-shadow:inset 0 0 0 1px var(--bad)}
+.qf{font-size:.92rem;margin:4px 0 0}
+ul.crit{margin:6px 0 0;padding-left:20px}
+ul.crit li{margin-bottom:6px}
+textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 12px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);resize:vertical}
+.check{display:flex;gap:8px;align-items:center;font-size:.9rem;margin-top:8px}
+@media (max-width:860px){
+  .grid{grid-template-columns:1fr}
+  .tiles{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .opts{grid-template-columns:1fr}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="kicker">Parada 2 · Diseño metodológico</p>
+    <h1>Elegir el muestreo</h1>
+    <p class="byline">Ivana Laura Galera · Pablo Emanuel · Aldana Tavarone · Lourdes M. Suárez Villasmil</p>
+    <p class="lead">Elige un caso, decide cómo muestrear y mira qué pasa con el resultado. En estas simulaciones conocemos el valor real, algo que en una investigación de verdad nunca se sabe.</p>
+    <ul class="cases" id="cases" aria-label="Casos disponibles"></ul>
+  </header>
+
+  <ol class="steps" id="steps"></ol>
+
+  <main>
+    <!-- Paso 1 -->
+    <section id="s1" class="panel on" aria-labelledby="t1">
+      <div class="grid">
+        <div class="stack">
+          <div class="card">
+            <h2 id="t1"></h2>
+            <div id="intro"></div>
+          </div>
+          <div class="card scroll" id="infoCard"></div>
+          <div class="actions" style="margin-top:0"><button class="btn" type="button" id="to2">Diseñar el muestreo</button></div>
+        </div>
+        <div class="card">
+          <div id="map1"></div>
+          <div class="legend" id="legend1"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paso 2 -->
+    <section id="s2" class="panel" aria-labelledby="t2">
+      <div class="grid">
+        <div class="stack">
+          <div class="card">
+            <h2 id="t2">Diseña tu muestreo</h2>
+            <fieldset class="opts" id="stratOpts">
+              <legend>¿Cómo eliges las unidades de muestreo?</legend>
+            </fieldset>
+            <div class="slider">
+              <label for="nRange"><strong id="nLabel"></strong></label>
+              <input type="range" id="nRange" min="6" max="60" step="1" value="30">
+              <output class="big" id="nOut" for="nRange">30</output>
+            </div>
+          </div>
+          <div class="card scroll">
+            <h3>Qué implica tu decisión</h3>
+            <table>
+              <thead id="prevHead"></thead>
+              <tbody id="prevTabla"></tbody>
+            </table>
+            <p class="note" id="prevNote" style="margin-top:8px"></p>
+            <div style="margin-top:10px">
+              <div style="display:flex;justify-content:space-between;font-size:.9rem;margin-bottom:4px"><span>Esfuerzo estimado</span><strong id="costTxt"></strong></div>
+              <div class="track" role="img" aria-label="Esfuerzo estimado frente al presupuesto" id="costTrack"><div class="fill" id="costFill"></div></div>
+              <p class="note" id="costNote" style="margin-top:6px"></p>
+            </div>
+            <div class="actions">
+              <button class="btn" type="button" id="takeSample">Tomar la muestra en el campo</button>
+              <button class="btn ghost" type="button" id="back1">Volver al problema</button>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div id="map2"></div>
+          <div class="legend" id="legend2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paso 3 -->
+    <section id="s3" class="panel" aria-labelledby="t3">
+      <h2 id="t3">Consecuencias de tu decisión</h2>
+      <div class="grid" style="margin-top:10px">
+        <div class="stack">
+          <div id="tiles"></div>
+          <div class="card scroll"><div id="pisoTabla"></div></div>
+          <div class="fb" id="devol"></div>
+          <div class="card">
+            <h3>Explora más</h3>
+            <p class="note">Una sola muestra puede ser mala o buena suerte. Repetir el muestreo muestra el comportamiento del diseño.</p>
+            <div class="actions" style="margin-top:6px">
+              <button class="btn ghost" type="button" id="again">Tomar otra muestra</button>
+              <button class="btn ghost" type="button" id="many">Repetir 300 veces</button>
+              <button class="btn ghost" type="button" id="cmp">Comparar las estrategias</button>
+            </div>
+            <div id="manyOut" style="margin-top:12px"></div>
+            <div id="cmpOut" class="cmp" style="margin-top:12px"></div>
+          </div>
+          <div class="actions" style="margin-top:0">
+            <button class="btn ghost" type="button" id="back2">Cambiar mi diseño</button>
+            <button class="btn" type="button" id="to4">Revisar y cerrar</button>
+          </div>
+        </div>
+        <div class="card">
+          <div id="map3"></div>
+          <div class="legend" id="legend3"></div>
+          <label class="check"><input type="checkbox" id="heat"> <span id="heatLabel"></span></label>
+        </div>
+      </div>
+    </section>
+
+    <!-- Paso 4 -->
+    <section id="s4" class="panel" aria-labelledby="t4">
+      <div class="grid">
+        <div class="stack">
+          <div class="card">
+            <h2 id="t4">Revisa tu decisión</h2>
+            <div id="quiz"></div>
+          </div>
+          <div class="card">
+            <h3>Criterios para llevarte</h3>
+            <ul class="crit">
+              <li>La estrategia sale del problema: qué quieres estimar y para qué población.</li>
+              <li>Si el sistema es heterogéneo, estratificar o repartir bien las unidades mejora la precisión y asegura representación.</li>
+              <li>Un intervalo estrecho no garantiza validez. El sesgo no se corrige con más unidades.</li>
+              <li>Toda estrategia tiene un costo. La factibilidad forma parte del diseño.</li>
+              <li>Los límites del diseño definen hasta dónde puedes generalizar tus conclusiones.</li>
+            </ul>
+          </div>
+        </div>
+        <div class="card">
+          <h3>Fundamenta tu decisión</h3>
+          <p class="note">Completa el texto con tus palabras y cópialo para el foro de coevaluación. Después aplica los mismos criterios a tu propio anteproyecto o al caso que te asignen.</p>
+          <label for="fund" class="note">Tu fundamentación</label>
+          <textarea id="fund"></textarea>
+          <div class="actions">
+            <button class="btn" type="button" id="copy">Copiar mi texto</button>
+            <button class="btn ghost" type="button" id="restart">Probar otro diseño</button>
+          </div>
+          <p class="note" id="copyMsg" role="status" style="margin-top:8px"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="credits">
+    <p><strong>Autores:</strong> Ivana Laura Galera, Pablo Emanuel, Aldana Tavarone, Lourdes M. Suárez Villasmil</p>
+    <p>Universidad Nacional de Córdoba · Facultad de Ciencias Exactas, Físicas y Naturales</p>
+    <p><strong>Web-manager:</strong> <a href="mailto:lourdes.suarez.villasmil@unc.edu.ar">lourdes.suarez.villasmil@unc.edu.ar</a></p>
+  </footer>
+</div>
+
+<script>
+/*MODEL-START*/
+const REPS = 300;
+const mean = a => a.reduce((s, v) => s + v, 0) / a.length;
+const fmt = (x, d = 1) => isFinite(x) ? x.toLocaleString('es-AR', { minimumFractionDigits: d, maximumFractionDigits: d }) : 's/d';
+const T975 = [NaN,12.706,4.303,3.182,2.776,2.571,2.447,2.365,2.306,2.262,2.228,2.201,2.179,2.160,2.145,2.131,2.120,2.110,2.101,2.093,2.086,2.080,2.074,2.069,2.064,2.060,2.056,2.052,2.048,2.045,2.042];
+function tcrit(df){ if(!(df >= 1)) return NaN; df = Math.floor(df); if(df <= 30) return T975[df]; if(df <= 60) return 2.0; return 1.98; }
+function mulberry32(a){ return function(){ a |= 0; a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function rngBox(seed){
+  const r = mulberry32(seed);
+  const gauss = () => { let u = 0, v = 0; while(!u) u = r(); while(!v) v = r(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); };
+  const pois = l => { const L = Math.exp(-l); let k = 0, p = 1; do { k++; p *= r(); } while(p > L); return k - 1; };
+  return { r, gauss, pois };
+}
+function sampleK(arr, k){
+  const a = arr.slice(), m = Math.min(k, a.length);
+  for(let i = 0; i < m; i++){ const j = i + Math.floor(Math.random() * (a.length - i)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a.slice(0, m);
+}
+const range = n => Array.from({ length: n }, (_, i) => i);
+function stats(vals){
+  const n = vals.length; if(!n) return { n: 0, m: NaN, s2: NaN };
+  const m = mean(vals); let s2 = NaN;
+  if(n > 1) s2 = vals.reduce((a, b) => a + (b - m) * (b - m), 0) / (n - 1);
+  return { n, m, s2 };
+}
+const NOCI = { m: NaN, se: NaN, lo: NaN, hi: NaN };
+function ci(m, se, df, min, max){
+  if(!isFinite(se) || !(df >= 1)) return { m, se: NaN, lo: NaN, hi: NaN };
+  const t = tcrit(df); let lo = m - t * se, hi = m + t * se;
+  if(min !== undefined) lo = Math.max(min, lo);
+  if(max !== undefined) hi = Math.min(max, hi);
+  return { m, se, lo, hi };
+}
+function srsEst(vals, N, min, max){
+  const s = stats(vals);
+  const se = s.n > 1 ? Math.sqrt((1 - s.n / N) * s.s2 / s.n) : NaN;
+  return ci(s.m, se, s.n - 1, min, max);
+}
+function mcSeeded(f, k){
+  const old = Math.random; Math.random = mulberry32(987654);
+  try { const acc = {}; for(let i = 0; i < k; i++){ const o = f(); for(const key in o) acc[key] = (acc[key] || 0) + o[key] / k; } return acc; }
+  finally { Math.random = old; }
+}
+const tbl = (h, rows) => `<table><thead><tr>${h.map((x, i) => `<th${i ? ' class="num"' : ''}>${x}</th>`).join('')}</tr></thead><tbody>${rows.map(r => `<tr>${r.map((x, i) => `<td${i ? ' class="num"' : ''}>${x}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+function partRow(dot, label, q, truth){
+  let est, res;
+  if(q.n === 0){ est = 'Sin datos'; res = '<span class="pill mute">No estimable</span>'; }
+  else if(!isFinite(q.lo)){ est = fmt(q.m) + (q.n === 1 ? ' (1 unidad, sin intervalo)' : ' (sin intervalo)'); res = '<span class="pill mute">No estimable</span>'; }
+  else { est = `${fmt(q.m)} [${fmt(q.lo)} a ${fmt(q.hi)}]`; const ok = q.lo <= truth && truth <= q.hi; res = ok ? '<span class="pill good">Incluye</span>' : '<span class="pill bad">No incluye</span>'; }
+  return `<tr><td>${dot ? `<i class="dot ${dot}"></i>` : ''}${label}</td><td class="num">${q.n}</td><td>${est}</td><td class="num">${fmt(truth)}</td><td>${res}</td></tr>`;
+}
+function partsTable(title, first, units, rows){
+  return `<h3>${title}</h3><table><thead><tr><th>${first}</th><th class="num">${units}</th><th>Tu estimación (IC 95 %)</th><th class="num">Valor real</th><th>Valor real dentro del IC</th></tr></thead><tbody>${rows}</tbody></table>`;
+}
+const overNote = (res, B) => res.cost > B ? ` Además, el esfuerzo real fue de ${fmt(res.cost)} jornadas y el presupuesto era de ${B}: en el campo habrías tenido que recortar.` : '';
+
+/* ======================= CASO 1: plantas por piso altitudinal ======================= */
+function makeCase1(){
+  const W = 25, H = 16, NT = W * H, ROAD_ROWS = 3, BUDGET = 24, COST_ROAD = 0.2, ROAD_DISTURB = 3.5;
+  const PISOS = [
+    { nombre: 'Bosque serrano',     mu: 9,   sd: 2.2, costo: 0.4, N: 0 },
+    { nombre: 'Pastizal de altura', mu: 4,   sd: 1.6, costo: 0.6, N: 0 },
+    { nombre: 'Roquedal',           mu: 1.3, sd: 1.0, costo: 1.2, N: 0 }
+  ];
+  const { r, gauss } = rngBox(11);
+  const CELLS = [];
+  for(let y = 0; y < H; y++) for(let x = 0; x < W; x++){
+    const alt = 1 - y / (H - 1) + 0.11 * Math.sin(x / 3.1 + 1) + 0.05 * Math.sin(x / 1.2) + 0.04 * gauss();
+    CELLS.push({ x, y, alt, piso: 0, v: 0, road: y >= H - ROAD_ROWS });
+  }
+  const order = CELLS.map((c, i) => i).sort((a, b) => CELLS[b].alt - CELLS[a].alt);
+  order.forEach((i, k) => { CELLS[i].piso = k < 32 ? 2 : (k < 32 + 88 ? 1 : 0); });
+  CELLS.forEach(c => { const p = PISOS[c.piso]; c.v = Math.max(0, Math.round(p.mu - (c.road ? ROAD_DISTURB : 0) + p.sd * gauss())); });
+  PISOS.forEach((p, h) => { p.N = CELLS.filter(c => c.piso === h).length; });
+  const ALL = range(NT), BYPISO = PISOS.map((p, h) => ALL.filter(i => CELLS[i].piso === h)), ROADCELLS = ALL.filter(i => CELLS[i].road);
+  const TRUE = { g: mean(CELLS.map(c => c.v)), p: PISOS.map((p, h) => mean(BYPISO[h].map(i => CELLS[i].v))) };
+  const NAMES = { srs: 'Aleatorio simple', prop: 'Estratificado proporcional', igual: 'Estratificado con igual esfuerzo', conv: 'Por conveniencia, junto al camino' };
+
+  function allocation(strat, n){
+    if(strat === 'prop'){ const a = PISOS.map(p => Math.max(2, Math.round(n * p.N / NT))); a[0] += n - a.reduce((s, v) => s + v, 0); return a; }
+    if(strat === 'igual'){ const b = Math.floor(n / 3), q = n % 3; return [b + (q > 0 ? 1 : 0), b + (q > 1 ? 1 : 0), b]; }
+    return null;
+  }
+  function expectedPerPiso(strat, n){
+    if(strat === 'srs') return PISOS.map(p => n * p.N / NT);
+    if(strat === 'conv') return PISOS.map((p, h) => ROADCELLS.filter(i => CELLS[i].piso === h).length ? n : 0);
+    return allocation(strat, n);
+  }
+  function expCost(strat, n){
+    if(strat === 'conv') return n * COST_ROAD;
+    return expectedPerPiso(strat, n).reduce((s, v, h) => s + v * PISOS[h].costo, 0);
+  }
+  function draw(strat, n){
+    if(strat === 'srs') return sampleK(ALL, n);
+    if(strat === 'conv') return sampleK(ROADCELLS, n);
+    const a = allocation(strat, n);
+    return [].concat(...a.map((k, h) => sampleK(BYPISO[h], k)));
+  }
+  function cost(strat, idx){ return strat === 'conv' ? idx.length * COST_ROAD : idx.reduce((s, i) => s + PISOS[CELLS[i].piso].costo, 0); }
+  function estimate(strat, idx){
+    const p = PISOS.map((P, h) => {
+      const q = stats(idx.filter(i => CELLS[i].piso === h).map(i => CELLS[i].v));
+      const se = q.n > 1 ? Math.sqrt((1 - q.n / P.N) * q.s2 / q.n) : NaN;
+      return Object.assign({ n: q.n, s2: q.s2 }, ci(q.m, se, q.n - 1));
+    });
+    let g;
+    if(strat === 'prop' || strat === 'igual'){
+      let m = 0, v = 0, ok = true;
+      p.forEach((q, h) => { const Wh = PISOS[h].N / NT; if(q.n < 2){ ok = false; return; } m += Wh * q.m; v += Wh * Wh * (1 - q.n / PISOS[h].N) * q.s2 / q.n; });
+      g = ci(m, ok ? Math.sqrt(v) : NaN, idx.length - 3);
+    } else g = srsEst(idx.map(i => CELLS[i].v), NT);
+    return { p, g };
+  }
+  function mapSVG(id, o){
+    o = o || {};
+    const cs = 24, sample = new Set(o.sample || []);
+    let s = `<svg class="map" viewBox="0 0 ${W * cs} ${H * cs + 30}" role="img" aria-label="Mapa del sector: 400 parcelas en tres pisos de vegetación y el camino de acceso en el borde inferior">`;
+    s += `<defs><pattern id="hatch-${id}" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="var(--ink)" stroke-opacity=".3" stroke-width="2"/></pattern></defs>`;
+    CELLS.forEach((c, i) => {
+      const op = o.heat ? 0.2 + 0.8 * Math.min(c.v / 12, 1) : 0.9, known = sample.has(i) || o.heat;
+      s += `<rect class="c${c.piso}" x="${c.x * cs + 1}" y="${c.y * cs + 1}" width="${cs - 2}" height="${cs - 2}" rx="3" fill-opacity="${op}"><title>${PISOS[c.piso].nombre}${known ? ', ' + c.v + ' especies' : ''}</title></rect>`;
+    });
+    s += `<rect x="0" y="${(H - ROAD_ROWS) * cs}" width="${W * cs}" height="${ROAD_ROWS * cs}" fill="url(#hatch-${id})" pointer-events="none"/>`;
+    s += `<rect x="0" y="${H * cs + 8}" width="${W * cs}" height="18" rx="5" fill="var(--ink)" fill-opacity=".78"/><text x="${W * cs / 2}" y="${H * cs + 21}" text-anchor="middle">Camino de acceso</text>`;
+    sample.forEach(i => { const c = CELLS[i]; s += `<circle cx="${c.x * cs + cs / 2}" cy="${c.y * cs + cs / 2}" r="6.5" fill="var(--surface)" stroke="var(--ink)" stroke-width="2.2"/>`; });
+    return s + '</svg>';
+  }
+  function feedback(res){
+    const g = res.e.g, inside = g.lo <= TRUE.g && TRUE.g <= g.hi, roq = res.e.p[2].n, ov = overNote(res, BUDGET), n = res.n;
+    if(res.strat === 'srs'){
+      const rq = roq < 2 ? `Quedaron ${roq} parcelas en el roquedal (se esperaban ${fmt(n * 0.08)}), así que no se puede calcular un intervalo para ese piso.` : `Quedaron ${roq} parcelas en el roquedal (se esperaban ${fmt(n * 0.08)}), y su intervalo es muy ancho.`;
+      return `<p><strong>Aleatorio simple.</strong> Sorteaste las parcelas sin mirar los pisos. Es un diseño sin sesgo: si repitieras el muestreo muchas veces, el promedio de las estimaciones coincidiría con el valor real. Su costo es la variabilidad, porque la diferencia entre pisos se mezcla con el azar del sorteo.</p><p>${rq}${ov}</p>`;
+    }
+    if(res.strat === 'prop') return `<p><strong>Estratificado proporcional.</strong> Reservaste parcelas para cada piso según su superficie. Eso controla el azar entre pisos y suele dar una estimación global más precisa que el aleatorio simple (compruébalo con la comparación de estrategias).</p><p>El límite está en el roquedal: por ser pequeño quedó con ${roq} parcelas y su intervalo sigue siendo ancho. Si ese piso era importante para tu pregunta, esta asignación no alcanza.${ov}</p>`;
+    if(res.strat === 'igual'){
+      const raw = mean(res.s.map(i => CELLS[i].v));
+      return `<p><strong>Estratificado con igual esfuerzo.</strong> Cada piso recibió las mismas parcelas, así que las estimaciones de cada piso son parejas en precisión. El precio fue alto: el roquedal es pequeño y es el piso más caro de visitar, y gastaste ${fmt(res.cost)} jornadas.</p><p>Para el promedio de toda la sierra hubo que ponderar cada piso por su superficie. Si hubieras promediado las parcelas sin ponderar, habrías obtenido ${fmt(raw)}, lejos del valor real (${fmt(TRUE.g)}), porque el roquedal pesaría un tercio y no el 8 % que ocupa.${ov}</p>`;
+    }
+    const tail = inside ? 'Esta vez el intervalo llegó a incluir el valor real, pero fue por casualidad: repite el muestreo y vas a ver que casi nunca lo incluye.' : 'El intervalo no incluye el valor real: es falsa precisión.';
+    return `<p><strong>Por conveniencia.</strong> Elegiste las parcelas más cómodas, junto al camino. Todas quedaron en el bosque del borde, donde el pastoreo y la extracción de leña reducen la riqueza. Las parcelas se parecen entre sí, por eso el intervalo es estrecho. ${tail}</p><p>Sumar más parcelas con el mismo criterio no corrige el sesgo. Además no hay datos del pastizal ni del roquedal, así que las conclusiones no se pueden extender al resto de la sierra.${ov}</p>`;
+  }
+  return {
+    id: 1, short: 'Plantas por piso altitudinal', title: 'Plantas leñosas en las Sierras Grandes', budget: BUDGET, unit: 'especies por parcela', truth: TRUE.g,
+    nMin: 6, nMax: 60, nDef: 30, nLabel: () => 'Parcelas a muestrear', sizeText: res => res.s.length + ' parcelas',
+    strategies: [
+      { k: 'srs', name: NAMES.srs, desc: 'Sorteas parcelas entre las 400, sin mirar el piso. Todas tienen la misma probabilidad.' },
+      { k: 'prop', name: NAMES.prop, desc: 'Sorteas parcelas dentro de cada piso, en proporción a su superficie. Mínimo 2 por piso.' },
+      { k: 'igual', name: NAMES.igual, desc: 'Sorteas la misma cantidad de parcelas en cada piso, sin importar su tamaño.' },
+      { k: 'conv', name: NAMES.conv, desc: 'Eliges parcelas de las tres primeras filas, las más cercanas al camino.' }
+    ],
+    intro: `<p>Un equipo quiere estimar cuántas especies de plantas leñosas hay, en promedio, por parcela de 20 × 20 m en un sector de 400 parcelas de las Sierras Grandes de Córdoba. El sector tiene tres pisos de vegetación y solo se puede visitar una parte.</p><p><strong>Objetivo:</strong> estimar la riqueza media de especies leñosas por parcela en todo el sector y, si es posible, en cada piso.</p>`,
+    info: `<h3>Lo que sabes antes de decidir</h3>` + tbl(['Piso', 'Parcelas', 'Superficie', 'Jornadas por parcela'], PISOS.map((p, h) => [`<i class="dot d${h}"></i>${p.nombre}`, p.N, fmt(p.N / NT * 100, 0) + ' %', fmt(p.costo)])) +
+      `<ul class="crit"><li><strong>Presupuesto:</strong> 24 jornadas de campo (2 personas, 12 días).</li><li><strong>Acceso:</strong> hay un único camino, en el borde inferior del sector. Las parcelas cercanas cuestan 0,2 jornadas.</li><li><strong>Borde de camino:</strong> en las tres primeras filas hay pastoreo y extracción de leña.</li></ul>`,
+    legend: PISOS.map((p, h) => `<span><i class="dot d${h}"></i>${p.nombre}</span>`).join('') + '<span>Rayado: borde de camino con pastoreo</span><span>Arriba, mayor altitud. Abajo, el camino de acceso.</span>',
+    heatLabel: 'Ver la riqueza real de cada parcela (más intenso, más especies)',
+    mapSVG: (id, o) => mapSVG(id, { sample: o.sample, heat: o.heat }),
+    draw, estimate, cost, expCost,
+    preview(strat, n){
+      const e = expectedPerPiso(strat, n), random = strat === 'srs';
+      return { head: ['Piso', 'Parcelas que muestrearías'], approx: random,
+        rows: PISOS.map((p, h) => [`<i class="dot d${h}"></i>${p.nombre}`, random ? '≈ ' + fmt(e[h]) + ' (depende del sorteo)' : fmt(e[h], 0)]),
+        note: strat === 'conv' ? 'Todas las parcelas posibles de esta estrategia están en el bosque del borde de camino.' : (random ? 'Cuántas parcelas caigan en cada piso lo decide el azar.' : 'Cada piso tiene garantizadas sus parcelas.') };
+    },
+    detail: res => partsTable('Resultado por piso', 'Piso', 'Parcelas', res.e.p.map((q, h) => partRow('d' + h, PISOS[h].nombre, q, TRUE.p[h])).join('')),
+    feedback,
+    extra: { label: 'Roquedal con menos de 2 parcelas', f: (s, e) => e.p[2].n < 2 },
+    quiz: [
+      { q: 'Supongamos que la pregunta es comparar la riqueza entre los tres pisos. ¿Qué diseño da estimaciones utilizables para el roquedal?', o: [
+        { t: 'Aleatorio simple con 30 parcelas', ok: false, f: 'Con 30 parcelas sorteadas, el roquedal recibe en promedio 2,4. En simulaciones, alrededor de 3 de cada 10 veces queda con 0 o 1 parcela y no se puede ni calcular un intervalo.' },
+        { t: 'Estratificado, asegurando varias parcelas por piso', ok: true, f: 'Correcto. Reservar parcelas para cada piso garantiza representación. Tiene un costo: el roquedal es el piso más caro por parcela y hay que decidir cuánto presupuesto destinarle.' },
+        { t: 'Por conveniencia, junto al camino', ok: false, f: 'Ninguna parcela cercana al camino es roquedal. No habría datos de ese piso.' } ] },
+      { q: 'Tu muestra por conveniencia dio un intervalo de confianza estrecho. ¿Qué puedes concluir?', o: [
+        { t: 'La estimación es precisa y confiable.', ok: false, f: 'Un intervalo estrecho indica poca variabilidad entre las parcelas elegidas, no que representen a la sierra. El intervalo no mide el sesgo de selección.' },
+        { t: 'Las parcelas se parecen entre sí, pero eso no asegura que representen a toda la sierra.', ok: true, f: 'Correcto. Precisión y ausencia de sesgo son cosas distintas: se puede estar muy cerca de un valor equivocado.' },
+        { t: 'Alcanza con agregar más parcelas cerca del camino para corregirlo.', ok: false, f: 'Más parcelas con el mismo criterio de selección repiten el mismo sesgo y angostan todavía más el intervalo.' } ] },
+      { q: 'Si el presupuesto bajara a 12 jornadas, ¿qué decisión sería más defendible?', o: [
+        { t: 'Mantener igual esfuerzo por piso, con pocas parcelas en cada uno.', ok: false, f: 'Es posible, pero cada parcela cuesta más en promedio porque el roquedal pesa en el presupuesto, y cada piso quedaría con muy pocas parcelas. Pruébalo en el paso 2 y mira el esfuerzo.' },
+        { t: 'Estratificado proporcional, aceptando un intervalo más ancho para el roquedal y dejándolo explícito.', ok: true, f: 'Correcto. Se conserva la representación de cada piso y se declara la limitación en lugar de ocultarla.' },
+        { t: 'Muestrear solo el bosque, que es lo más barato y abarca el 70 %.', ok: false, f: 'Cambia la población de estudio: las conclusiones valdrían solo para el bosque y no para la sierra.' } ] }
+    ]
+  };
+}
+
+/* ======================= CASO 2: arroyo urbano ======================= */
+function makeCase2(){
+  const NS = 120, PERIOD = 8, BUDGET = 16, COST = { srs: 0.5, sist: 0.4, cong: 0.25 };
+  const TR = ['Tramo alto (naciente)', 'Tramo medio', 'Tramo urbano'];
+  const trOf = i => i < 40 ? 0 : (i < 80 ? 1 : 2), isRiffle = i => (i % PERIOD) < 4;
+  const { gauss } = rngBox(23);
+  const V = range(NS).map(i => Math.max(0, Math.round(14 - 8 * (i / (NS - 1)) - (i >= 80 ? 2 : 0) + (isRiffle(i) ? 2.5 : -2.5) + 1.3 * gauss())));
+  const ALL = range(NS);
+  const TRUE = { g: mean(V), p: TR.map((t, h) => mean(V.filter((v, i) => trOf(i) === h))) };
+  const kOf = n => Math.max(2, Math.floor(NS / n));
+  const DIV = [2, 3, 4, 5, 6, 8, 10, 12, 15, 20];
+  const bOf = n => { let b = 2; DIV.forEach(d => { if(d <= n / 3) b = d; }); return b; };
+  function draw(strat, n){
+    if(strat === 'srs') return { idx: sampleK(ALL, n).sort((x, y) => x - y) };
+    if(strat === 'sist'){ const k = kOf(n), st0 = Math.floor(Math.random() * k), idx = []; for(let i = st0; i < NS; i += k) idx.push(i); return { idx, k }; }
+    const b = bOf(n), M = NS / b, blocks = sampleK(range(M), 3).sort((x, y) => x - y), idx = [];
+    blocks.forEach(j => { for(let i = 0; i < b; i++) idx.push(j * b + i); });
+    return { idx, b, M, blocks };
+  }
+  function estimate(strat, s){
+    const vals = s.idx.map(i => V[i]); let g;
+    if(strat === 'srs') g = srsEst(vals, NS);
+    else if(strat === 'sist'){
+      const m = vals.length; let ss = 0; for(let j = 0; j < m - 1; j++) ss += Math.pow(vals[j + 1] - vals[j], 2);
+      g = ci(mean(vals), Math.sqrt((1 - m / NS) * ss / (2 * m * (m - 1))), m - 1);
+    } else {
+      const mm = s.blocks.map((j, q) => mean(vals.slice(q * s.b, (q + 1) * s.b))), q = stats(mm);
+      g = ci(q.m, Math.sqrt((1 - 3 / s.M) * q.s2 / 3), 2);
+    }
+    const p = TR.map((t, h) => {
+      const q = stats(s.idx.filter(i => trOf(i) === h).map(i => V[i]));
+      return Object.assign({ n: q.n }, q.n > 1 ? ci(q.m, Math.sqrt((1 - q.n / 40) * q.s2 / q.n), q.n - 1) : Object.assign({}, NOCI, { m: q.m }));
+    });
+    return { g, p };
+  }
+  const cost = (strat, s) => s.idx.length * COST[strat];
+  const sizeOf = (strat, n) => strat === 'srs' ? n : (strat === 'sist' ? Math.round(NS / kOf(n)) : 3 * bOf(n));
+  function mapSVG(id, o){
+    o = o || {};
+    const cw = 5, w = NS * cw, S = o.sample, sample = new Set(S ? S.idx : []), hh = o.heat ? 190 : 84;
+    let s = `<svg class="map" viewBox="0 0 ${w} ${hh}" role="img" aria-label="Arroyo de 12 km dividido en 120 sitios de 100 m, de la naciente al tramo urbano">`;
+    s += `<text class="lbl" x="0" y="12">Naciente</text><text class="lbl" x="${w}" y="12" text-anchor="end">Tramo urbano</text>`;
+    ALL.forEach(i => {
+      const known = sample.has(i) || o.heat;
+      s += `<rect class="c${trOf(i)}" x="${i * cw}" y="42" width="${cw - 0.6}" height="26" fill-opacity="${isRiffle(i) ? 0.95 : 0.5}"><title>Sitio ${i + 1}, ${isRiffle(i) ? 'rápido' : 'poza'}, ${TR[trOf(i)].toLowerCase()}${known ? ', ' + V[i] + ' familias' : ''}</title></rect>`;
+    });
+    sample.forEach(i => { const cx = i * cw + cw / 2; s += `<path d="M${cx - 4} 22 L${cx + 4} 22 L${cx} 38 Z" fill="var(--ink)"/>`; });
+    if(o.heat){
+      s += `<line x1="0" x2="${w}" y1="184" y2="184" stroke="var(--line)"/>`;
+      ALL.forEach(i => { const bh = V[i] * 6; s += `<rect class="c${trOf(i)}" x="${i * cw}" y="${184 - bh}" width="${cw - 0.6}" height="${bh}" ${sample.has(i) ? 'stroke="var(--ink)" stroke-width="1"' : 'fill-opacity=".75"'}/>`; });
+      s += `<text class="lbl" x="0" y="96">Familias de macroinvertebrados por sitio</text>`;
+    }
+    return s + '</svg>';
+  }
+  function feedback(res){
+    const e = res.e, p = e.p, ov = overNote(res, BUDGET), n = res.n;
+    if(res.strat === 'srs') return `<p><strong>Aleatorio simple.</strong> Sorteaste los sitios sin mirar su posición. No tiene sesgo, pero el azar puede dejar tramos largos sin muestrear y no aprovecha que la calidad del agua cambia de manera ordenada de la naciente a la ciudad.</p><p>Tu muestra puso ${p[0].n}, ${p[1].n} y ${p[2].n} sitios en los tramos alto, medio y urbano (lo esperable era ${fmt(n / 3)} en cada uno). Esa desparejidad se paga en variabilidad, y llegar a sitios dispersos cuesta más jornadas.${ov}</p>`;
+    if(res.strat === 'sist'){
+      const k = res.s.k, hit = k % PERIOD === 0, h = isRiffle(res.s.idx[0]);
+      const intro = `<p><strong>Sistemático.</strong> Recorriste el arroyo tomando un sitio cada ${k} (${k * 100} m), con inicio al azar. Cubre todo el gradiente de manera pareja y es barato porque caminas el cauce. Tu muestra puso ${p[0].n}, ${p[1].n} y ${p[2].n} sitios en los tres tramos.</p>`;
+      const per = hit
+        ? `<p><strong>Atención:</strong> tu espaciado coincide con el ciclo de rápidos y pozas (cada 8 sitios). Todos tus sitios cayeron en ${h ? 'rápidos, donde la riqueza es mayor' : 'pozas, donde la riqueza es menor'}. Es un sesgo por periodicidad: la muestra parece homogénea y precisa, pero está corrida. Con otro punto de partida habría caído todo en el otro hábitat y el error habría cambiado de signo.${ov}</p>`
+        : `<p>Tu espaciado no coincide con el ciclo de rápidos y pozas (8 sitios), así que ambos hábitats quedaron representados. Si el espaciado fuera múltiplo de 8, por ejemplo con 15 sitios, todos los sitios caerían en el mismo tipo de hábitat y la estimación se sesgaría. Pruébalo.${ov}</p>`;
+      return intro + per;
+    }
+    const cov = p.filter(q => q.n > 0).length;
+    return `<p><strong>Conglomerados.</strong> Tomaste 3 tramos contiguos de ${res.s.b} sitios (${3 * res.s.b} sitios en total). Es lo más barato (${fmt(res.cost)} jornadas) porque casi no te mueves entre sitios.</p><p>Pero son solo 3 unidades independientes, así que el intervalo es muy ancho. Y como la calidad cambia a lo largo del arroyo, tus tramos tocaron ${cov} de los 3 sectores del recorrido.${ov}</p>`;
+  }
+  return {
+    id: 2, short: 'Arroyo urbano', title: 'Macroinvertebrados en un arroyo urbano', budget: BUDGET, unit: 'familias por sitio', truth: TRUE.g,
+    nMin: 6, nMax: 60, nDef: 30, nLabel: () => 'Sitios a muestrear', sizeText: res => res.s.idx.length + ' sitios',
+    strategies: [
+      { k: 'srs', name: 'Aleatorio simple', desc: 'Sorteas sitios entre los 120, sin mirar su posición en el arroyo.' },
+      { k: 'sist', name: 'Sistemático', desc: 'Un sitio cada k (según cuántos pidas), con el primer sitio elegido al azar.' },
+      { k: 'cong', name: 'Por conglomerados (3 tramos)', desc: 'Sorteas 3 tramos de sitios contiguos y los muestreas completos.' }
+    ],
+    intro: `<p>Un equipo estudia la calidad del agua de un arroyo serrano que atraviesa una ciudad. Usa como indicador la riqueza de familias de macroinvertebrados bentónicos por sitio. El cauce mide 12 km y se divide en 120 sitios de 100 m.</p><p><strong>Objetivo:</strong> estimar la riqueza media de familias de todo el arroyo y ver si cambia entre la naciente y el tramo urbano.</p>`,
+    info: `<h3>Lo que sabes antes de decidir</h3>` + tbl(['Tramo', 'Sitios', 'Largo'], TR.map((t, h) => [`<i class="dot d${h}"></i>${t}`, 40, '4 km'])) +
+      `<ul class="crit"><li><strong>Presupuesto:</strong> 16 jornadas de campo.</li><li><strong>Costos por sitio:</strong> 0,5 jornadas si los sitios están dispersos, 0,4 si caminas el cauce con un espaciado regular y 0,25 si muestreas tramos contiguos.</li><li><strong>Hábitat:</strong> el cauce alterna rápidos y pozas, un ciclo completo cada 800 m (8 sitios). Los rápidos suelen tener más familias que las pozas.</li><li><strong>Calidad:</strong> la contaminación aumenta aguas abajo, sobre todo desde que el arroyo entra a la ciudad.</li></ul>`,
+    legend: TR.map((t, h) => `<span><i class="dot d${h}"></i>${t}</span>`).join('') + '<span>Color intenso: rápido. Color claro: poza.</span><span>Triángulo: sitio muestreado.</span>',
+    heatLabel: 'Ver la riqueza real de cada sitio (barras)',
+    mapSVG: (id, o) => mapSVG(id, { sample: o.sample, heat: o.heat }),
+    draw, estimate, cost,
+    preview(strat, n){
+      const m = sizeOf(strat, n), k = kOf(n);
+      const rows = strat === 'cong'
+        ? TR.map((t, h) => [`<i class="dot d${h}"></i>${t}`, 'según los tramos que salgan'])
+        : TR.map((t, h) => [`<i class="dot d${h}"></i>${t}`, '≈ ' + fmt(m / 3)]);
+      rows.push(['<strong>Total de sitios</strong>', '<strong>' + m + '</strong>']);
+      return { head: ['Tramo', 'Sitios que muestrearías'], approx: true, rows,
+        note: strat === 'sist' ? `Espaciado de ${k} sitios (${k * 100} m) entre muestras.` : (strat === 'cong' ? `Tres tramos de ${bOf(n)} sitios contiguos cada uno.` : 'Cuántos sitios caigan en cada tramo lo decide el azar.') };
+    },
+    detail: res => partsTable('Resultado por tramo', 'Tramo', 'Sitios', res.e.p.map((q, h) => partRow('d' + h, TR[h], q, TRUE.p[h])).join('')),
+    feedback,
+    extra: { label: 'Algún tramo sin ningún sitio', f: (s, e) => e.p.some(q => q.n === 0) },
+    quiz: [
+      { q: 'Para estimar la calidad media de un arroyo cuya calidad cambia de forma continua desde la naciente, ¿qué ventaja tiene el muestreo sistemático?', o: [
+        { t: 'Cubre todo el recorrido de manera pareja, lo que reduce la variabilidad.', ok: true, f: 'Correcto. Al repartir los sitios a lo largo del gradiente, cada tramo queda representado, y por eso suele ser más preciso que sortear sitios.' },
+        { t: 'Elimina cualquier posibilidad de sesgo.', ok: false, f: 'No. Si el espaciado coincide con una periodicidad del arroyo, como el ciclo de rápidos y pozas, introduce un sesgo.' },
+        { t: 'Permite usar menos sitios sin perder información.', ok: false, f: 'No necesariamente. Con menos sitios sigue habiendo más variabilidad; la ventaja está en cómo se reparten, no en cuántos son.' } ] },
+      { q: 'Un colega propone espaciar los sitios cada 800 m "porque queda ordenado". ¿Qué problema puede traer?', o: [
+        { t: 'Coincide con el ciclo de rápidos y pozas: todos los sitios caen en el mismo hábitat.', ok: true, f: 'Correcto. Es el sesgo por periodicidad: la muestra parece homogénea y precisa, pero está sistemáticamente corrida.' },
+        { t: 'Se necesitan más jornadas.', ok: false, f: 'No. El problema no es el costo, es la coincidencia con un patrón del terreno.' },
+        { t: 'No se puede calcular un intervalo de confianza.', ok: false, f: 'Se puede calcular, y sale estrecho, lo que lo vuelve más engañoso.' } ] },
+      { q: 'El muestreo por conglomerados (3 tramos) dio un intervalo muy ancho. ¿Por qué?', o: [
+        { t: 'Hay solo 3 unidades independientes y la calidad cambia mucho entre tramos.', ok: true, f: 'Correcto. Los sitios contiguos se parecen y aportan poca información nueva; lo que cuenta son los tramos, y son pocos.' },
+        { t: 'Los sitios contiguos son muy distintos entre sí.', ok: false, f: 'Al contrario: los sitios contiguos se parecen, y por eso aportan menos información que sitios dispersos.' },
+        { t: 'Porque el diseño tiene sesgo.', ok: false, f: 'El ancho del intervalo habla de variabilidad, no de sesgo.' } ] }
+    ]
+  };
+}
+
+/* ======================= CASO 3: vinchucas ======================= */
+function makeCase3(){
+  const NP = 40, PER = 25, NV = NP * PER, BUDGET = 20, HOUSE = 0.08;
+  const onRoad = j => j >= 30, travel = j => onRoad(j) ? 0.3 : 1.0, parOf = i => Math.floor(i / PER);
+  const { r, gauss } = rngBox(37);
+  const Y = [];
+  for(let j = 0; j < NP; j++){
+    const p = onRoad(j) ? Math.min(0.9, Math.max(0.02, 0.15 + 0.10 * gauss())) : Math.min(0.9, Math.max(0.03, 0.38 + 0.20 * gauss()));
+    for(let h = 0; h < PER; h++) Y.push(r() < p ? 100 : 0);
+  }
+  const ALL = range(NV), ROADV = ALL.filter(i => onRoad(parOf(i)));
+  const TRUE = { g: mean(Y), p: [mean(ROADV.map(i => Y[i])), mean(ALL.filter(i => !onRoad(parOf(i))).map(i => Y[i]))] };
+  const ZON = ['Poblados sobre la ruta', 'Poblados alejados de la ruta'];
+  const housesOf = j => range(PER).map(h => j * PER + h);
+  function draw(strat, n){
+    if(strat === 'srs') return { idx: sampleK(ALL, n) };
+    if(strat === 'ruta'){ const k = Math.max(1, Math.floor(ROADV.length / n)), st0 = Math.floor(Math.random() * k), idx = []; for(let i = st0; i < ROADV.length; i += k) idx.push(ROADV[i]); return { idx }; }
+    if(strat === 'cong'){ const c = Math.max(2, Math.round(n / PER)), par = sampleK(range(NP), c); return { idx: [].concat(...par.map(housesOf)), par, c }; }
+    const c = Math.max(2, Math.round(n / 10)), par = sampleK(range(NP), c);
+    return { idx: [].concat(...par.map(j => sampleK(housesOf(j), 10))), par, c };
+  }
+  const parajesOf = s => Array.from(new Set(s.idx.map(parOf)));
+  function cost(strat, s){ return parajesOf(s).reduce((a, j) => a + travel(j), 0) + HOUSE * s.idx.length; }
+  function estimate(strat, s){
+    const vals = s.idx.map(i => Y[i]); let g;
+    if(strat === 'srs') g = srsEst(vals, NV, 0, 100);
+    else if(strat === 'ruta') g = srsEst(vals, ROADV.length, 0, 100);
+    else {
+      const pm = s.par.map(j => mean(s.idx.filter(i => parOf(i) === j).map(i => Y[i]))), q = stats(pm);
+      g = ci(q.m, Math.sqrt((1 - s.c / NP) * q.s2 / s.c), s.c - 1, 0, 100);
+    }
+    const p = [0, 1].map(z => { const v = s.idx.filter(i => (onRoad(parOf(i)) ? 0 : 1) === z).map(i => Y[i]); return Object.assign({ n: v.length }, NOCI, { m: v.length ? mean(v) : NaN }); });
+    return { g, p };
+  }
+  function mapSVG(id, o){
+    o = o || {};
+    const cs = 8, pw = 54, S = o.sample, sample = new Set(S ? S.idx : []);
+    let s = `<svg class="map" viewBox="0 0 ${10 * pw} ${4 * pw + 30}" role="img" aria-label="Cuarenta poblados con 25 viviendas cada uno; los de la fila inferior están sobre la ruta principal">`;
+    for(let j = 0; j < NP; j++){
+      const col = j % 10, row = Math.floor(j / 10), x0 = col * pw + 4, y0 = row * pw + 4;
+      for(let h = 0; h < PER; h++){
+        const i = j * PER + h, x = x0 + (h % 5) * (cs + 0.5), y = y0 + Math.floor(h / 5) * (cs + 0.5), cls = onRoad(j) ? 'c1' : 'c0';
+        const inf = Y[i] === 100, seen = sample.has(i);
+        let style = `class="${cls}" fill-opacity="${o.heat ? (inf ? 0 : 0.25) : 0.55}"`;
+        if(o.heat && inf) style = 'fill="var(--bad)" fill-opacity=".85"';
+        if(seen) style = inf ? 'fill="var(--bad)"' : 'fill="var(--surface)" stroke="var(--ink)" stroke-width="1.2"';
+        s += `<rect ${style} x="${x}" y="${y}" width="${cs - 1}" height="${cs - 1}" rx="1.5"><title>Poblado ${j + 1}, ${onRoad(j) ? 'sobre la ruta' : 'alejado'}${seen || o.heat ? (inf ? ', infestada' : ', sin vinchucas') : ''}</title></rect>`;
+      }
+    }
+    s += `<rect x="0" y="${4 * pw + 6}" width="${10 * pw}" height="18" rx="5" fill="var(--ink)" fill-opacity=".78"/><text x="${5 * pw}" y="${4 * pw + 19}" text-anchor="middle">Ruta principal</text>`;
+    return s + '</svg>';
+  }
+  function feedback(res){
+    const par = parajesOf(res.s), ov = overNote(res, BUDGET), g = res.e.g;
+    if(res.strat === 'srs') return `<p><strong>Aleatorio simple de viviendas.</strong> Sorteaste viviendas entre las 1000. No tiene sesgo, pero casi cada vivienda sorteada cae en un poblado distinto: tendrías que visitar ${par.length} de los 40 poblados y gastarías ${fmt(res.cost)} jornadas, casi todo en traslados.</p><p>Con 20 jornadas solo alcanzarías a inspeccionar menos de 30 viviendas, muy pocas para un intervalo útil. El diseño es correcto en teoría e inviable en la práctica.${ov}</p>`;
+    if(res.strat === 'ruta'){
+      return `<p><strong>Sistemático por la ruta.</strong> Tomaste una de cada k viviendas sobre la ruta principal. Es barato (${fmt(res.cost)} jornadas) y el intervalo sale estrecho.</p><p>El problema es la cobertura: ninguna vivienda de los poblados alejados tuvo posibilidad de entrar a la muestra, y esos poblados tienen una prevalencia distinta. Estimaste ${fmt(g.m)} %, el valor real es ${fmt(TRUE.g)} %. Más viviendas sobre la ruta no corrigen eso.${ov}</p>`;
+    }
+    if(res.strat === 'cong') return `<p><strong>Conglomerados.</strong> Visitaste ${res.s.c} poblados e inspeccionaste todas sus viviendas. Es el diseño que mejor respeta la logística: pocos traslados (${fmt(res.cost)} jornadas).</p><p>El costo es estadístico: las viviendas de un mismo poblado se parecen entre sí, así que ${res.s.idx.length} viviendas aportan menos información que ${res.s.idx.length} viviendas independientes. Lo que cuenta es el número de poblados, y el intervalo es ancho.${ov}</p>`;
+    return `<p><strong>Dos etapas.</strong> Sorteaste ${res.s.c} poblados y, en cada uno, 10 viviendas al azar. Con las mismas viviendas que en el diseño anterior visitas más poblados, y eso reduce la variabilidad entre poblados, que es la que más pesa. A cambio, gastas más en traslados (${fmt(res.cost)} jornadas).</p><p>Por eso conviene mirar los dos diseños por conglomerados con la comparación de estrategias y decidir cuánto presupuesto poner en viajes y cuánto en viviendas.${ov}</p>`;
+  }
+  return {
+    id: 3, short: 'Vinchucas', title: 'Infestación por vinchucas en poblados rurales', budget: BUDGET, unit: '% de viviendas infestadas', truth: TRUE.g,
+    nMin: 20, nMax: 200, nDef: 100, nStep: 5, nLabel: () => 'Viviendas a inspeccionar', sizeText: res => `${res.s.idx.length} viviendas en ${parajesOf(res.s).length} poblados`,
+    strategies: [
+      { k: 'srs', name: 'Aleatorio simple de viviendas', desc: 'Sorteas viviendas entre las 1000, vayan donde vayan.' },
+      { k: 'ruta', name: 'Sistemático por la ruta', desc: 'Una de cada k viviendas del listado de la ruta principal, con inicio al azar.' },
+      { k: 'cong', name: 'Conglomerados (poblados completos)', desc: 'Sorteas poblados e inspeccionas todas sus viviendas.' },
+      { k: 'etapas', name: 'Dos etapas', desc: 'Sorteas poblados y, dentro de cada uno, 10 viviendas al azar.' }
+    ],
+    intro: `<p>Un programa de control de Chagas quiere estimar qué porcentaje de las viviendas rurales del noroeste de Córdoba está infestado con vinchucas (<em>Triatoma infestans</em>, el insecto que transmite el Chagas). El área tiene 40 poblados dispersos con 25 viviendas cada uno, 1000 en total.</p><p><strong>Objetivo:</strong> estimar el porcentaje de viviendas infestadas en toda el área.</p>`,
+    info: `<h3>Lo que sabes antes de decidir</h3>` + tbl(['Zona', 'Poblados', 'Viviendas'], [[`<i class="dot d1"></i>${ZON[0]}`, 10, 250], [`<i class="dot d0"></i>${ZON[1]}`, 30, 750]]) +
+      `<ul class="crit"><li><strong>Presupuesto:</strong> 20 jornadas de campo.</li><li><strong>Traslados:</strong> llegar a un poblado sobre la ruta cuesta 0,3 jornadas y a uno alejado, 1,0 (caminos de tierra, unas 4 h).</li><li><strong>Inspección:</strong> cada vivienda cuesta 0,08 jornadas.</li><li><strong>Experiencia previa:</strong> las viviendas de un mismo poblado suelen parecerse entre sí en su situación de infestación.</li></ul>`,
+    legend: `<span><i class="dot d1"></i>Poblados sobre la ruta</span><span><i class="dot d0"></i>Poblados alejados</span><span>Cada grupo de 25 cuadraditos es un poblado</span><span>Rojo: vivienda infestada. Borde oscuro: inspeccionada y sin vinchucas.</span>`,
+    heatLabel: 'Ver cuáles viviendas están infestadas de verdad',
+    mapSVG: (id, o) => mapSVG(id, { sample: o.sample, heat: o.heat }),
+    draw, estimate, cost,
+    preview(strat, n){
+      const m = mcSeeded(() => { const s = draw(strat, n); return { v: s.idx.length, p: parajesOf(s).length, a: s.idx.filter(i => !onRoad(parOf(i))).length }; }, 80);
+      return { head: ['Concepto', 'Valor'], approx: true,
+        rows: [['Viviendas que inspeccionarías', fmt(m.v, 0)], ['Poblados que tendrías que visitar', fmt(m.p, 0)], ['Viviendas en poblados alejados', fmt(m.a, 0)]],
+        note: strat === 'ruta' ? 'Solo las viviendas del listado de la ruta pueden entrar a la muestra.' : (strat === 'cong' ? 'Cada poblado elegido se inspecciona completo (25 viviendas).' : (strat === 'etapas' ? 'Cada poblado elegido aporta 10 viviendas al azar.' : 'Cada vivienda sorteada puede estar en un poblado distinto.')) };
+    },
+    detail: res => `<h3>Qué inspeccionaste por zona</h3>` + tbl(['Zona', 'Viviendas', '% infestadas en tu muestra', 'Valor real'], res.e.p.map((q, z) => [`<i class="dot ${z ? 'd0' : 'd1'}"></i>${ZON[z]}`, q.n, q.n ? fmt(q.m) : 'Sin datos', fmt(TRUE.p[z])])) + '<p class="note" style="margin-top:8px">Por zona se muestra solo la estimación puntual: con este diseño no hay muestra suficiente para un intervalo.</p>',
+    feedback,
+    extra: { label: 'Superó el presupuesto', f: (s, e, c) => c > BUDGET },
+    quiz: [
+      { q: '¿Por qué el aleatorio simple de viviendas resulta inviable con este presupuesto?', o: [
+        { t: 'Casi cada vivienda sorteada cae en un poblado distinto y los traslados consumen las jornadas.', ok: true, f: 'Correcto. Es un problema logístico, no estadístico: el diseño es válido pero no se puede ejecutar.' },
+        { t: 'Porque tiene sesgo.', ok: false, f: 'No tiene sesgo. Cada vivienda tiene la misma probabilidad de entrar.' },
+        { t: 'Porque exige conocer la prevalencia de antemano.', ok: false, f: 'No hace falta conocerla: justamente es lo que se quiere estimar.' } ] },
+      { q: 'El muestreo sobre la ruta fue barato y dio un intervalo estrecho, pero se equivocó. ¿Qué pasó?', o: [
+        { t: 'Las viviendas alejadas no tenían posibilidad de entrar y tienen otra prevalencia.', ok: true, f: 'Correcto. Es un sesgo de cobertura: el listado de donde se muestrea no incluye a todos.' },
+        { t: 'La muestra fue demasiado pequeña.', ok: false, f: 'Más viviendas sobre la ruta no cambian que el resto del territorio quede afuera.' },
+        { t: 'El muestreo sistemático siempre sesga.', ok: false, f: 'No. El sesgo viene de la cobertura (qué viviendas pueden entrar), no del método sistemático.' } ] },
+      { q: 'En un muestreo por conglomerados, ¿qué pesa más en la precisión?', o: [
+        { t: 'Cuántos poblados visitas, más que cuántas viviendas por poblado.', ok: true, f: 'Correcto. Las viviendas de un mismo poblado se parecen, así que sumar viviendas del mismo poblado aporta poco; sumar poblados aporta información nueva.' },
+        { t: 'Cuántas viviendas hay en cada poblado.', ok: false, f: 'Ayuda poco: las viviendas de un poblado se parecen entre sí.' },
+        { t: 'El orden en que se visitan los poblados.', ok: false, f: 'El orden no cambia la información de la muestra.' } ] }
+    ]
+  };
+}
+
+/* ======================= CASO 4: ensayo con Daphnia ======================= */
+function makeCase4(){
+  const PER = 50, NSH = 6, N = 300, BUDGET = 5, OFF = [-4, 0.5, -0.5, 0, 0.5, -0.5];
+  const { gauss } = rngBox(41);
+  const V = range(N).map(i => Math.max(0, Math.round(22 + OFF[Math.floor(i / PER)] + 4.5 * gauss())));
+  const ALL = range(N), shOf = i => Math.floor(i / PER), SH = range(NSH).map(s => range(PER).map(c => s * PER + c));
+  const TRUE = { g: mean(V), p: [mean(SH[0].map(i => V[i])), mean(ALL.filter(i => shOf(i) > 0).map(i => V[i]))] };
+  const ZON = ['Estante 1 (frontal)', 'Estantes 2 a 6'];
+  const unitCost = strat => strat === 'conv' ? 0.08 : 0.12;
+  function draw(strat, n){
+    if(strat === 'srs') return sampleK(ALL, n);
+    if(strat === 'conv') return sampleK(SH[0], n);
+    const b = Math.floor(n / NSH), q = n % NSH;
+    return [].concat(...SH.map((sh, k) => sampleK(sh, b + (k < q ? 1 : 0))));
+  }
+  function estimate(strat, idx){
+    let g;
+    if(strat === 'estr'){
+      let m = 0, v = 0, ok = true;
+      SH.forEach((sh, k) => { const q = stats(idx.filter(i => shOf(i) === k).map(i => V[i])); if(q.n < 2){ ok = false; return; } m += q.m / NSH; v += (1 / (NSH * NSH)) * (1 - q.n / PER) * q.s2 / q.n; });
+      g = ci(m, ok ? Math.sqrt(v) : NaN, idx.length - NSH, 0);
+    } else g = srsEst(idx.map(i => V[i]), N, 0);
+    const p = [0, 1].map(z => { const q = stats(idx.filter(i => (shOf(i) === 0 ? 0 : 1) === z).map(i => V[i])); return Object.assign({ n: q.n }, q.n > 1 ? ci(q.m, Math.sqrt((1 - q.n / (z ? 250 : 50)) * q.s2 / q.n), q.n - 1, 0) : Object.assign({}, NOCI, { m: q.m })); });
+    return { g, p };
+  }
+  const cost = (strat, idx) => idx.length * unitCost(strat);
+  function mapSVG(id, o){
+    o = o || {};
+    const cs = 11, x0 = 34, y0 = 6, gap = 7, sample = new Set(o.sample || []);
+    let s = `<svg class="map" viewBox="0 0 600 ${y0 + NSH * (cs + gap)}" role="img" aria-label="Seis estantes con 50 recipientes cada uno; el primero está junto a la puerta de la cámara">`;
+    for(let sh = 0; sh < NSH; sh++){
+      s += `<text class="lbl" x="0" y="${y0 + sh * (cs + gap) + cs - 1}">E${sh + 1}</text>`;
+      for(let c = 0; c < PER; c++){
+        const i = sh * PER + c, op = o.heat ? 0.2 + 0.8 * Math.min(V[i] / 30, 1) : 0.85, known = sample.has(i) || o.heat;
+        s += `<rect class="${sh === 0 ? 'c2' : 'c0'}" x="${x0 + c * cs}" y="${y0 + sh * (cs + gap)}" width="${cs - 1.5}" height="${cs - 1.5}" rx="2" fill-opacity="${op}"><title>Estante ${sh + 1}, recipiente ${c + 1}${known ? ', ' + V[i] + ' crías' : ''}</title></rect>`;
+      }
+    }
+    sample.forEach(i => { s += `<circle cx="${x0 + (i % PER) * cs + (cs - 1.5) / 2}" cy="${y0 + shOf(i) * (cs + gap) + (cs - 1.5) / 2}" r="3.4" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.6"/>`; });
+    return s + '</svg>';
+  }
+  function feedback(res){
+    const ov = overNote(res, BUDGET), fr = res.s.filter(i => shOf(i) === 0).length, g = res.e.g, n = res.n;
+    if(res.strat === 'srs') return `<p><strong>Aleatorio simple.</strong> Sorteaste recipientes entre los 300. Como todos son parecidos (mismo clon, misma dieta, misma cámara), es el diseño más simple y no tiene sesgo. No hace falta más.</p><p>En tu muestra, ${fr} recipientes salieron del estante frontal (se esperaban ${fmt(n / 6)}).${ov}</p>`;
+    if(res.strat === 'estr') return `<p><strong>Estratificado por estante.</strong> Sorteaste la misma cantidad de recipientes en cada estante. Es válido y no tiene sesgo, pero los estantes se parecen casi todos entre sí (salvo el frontal), así que la ganancia de precisión es pequeña y el protocolo se complica.</p><p>Compruébalo en la comparación de estrategias: la variabilidad casi no cambia respecto del aleatorio simple.${ov}</p>`;
+    return `<p><strong>Por conveniencia.</strong> Tomaste los recipientes del estante frontal, junto a la puerta, porque son los más cómodos. Ese estante recibe corriente de aire y tiene otra temperatura, y las hembras producen menos crías. Estimaste ${fmt(g.m)} crías por hembra, el valor real es ${fmt(TRUE.g)}.</p><p>El intervalo es estrecho porque los recipientes se parecen entre sí, pero ${g.lo <= TRUE.g && TRUE.g <= g.hi ? 'esta vez, por casualidad, incluyó el valor real' : 'no incluye el valor real'}. En el control de calidad real, concluirías que todo el cultivo rinde menos de lo que rinde.${ov}</p>`;
+  }
+  return {
+    id: 4, short: 'Daphnia', title: 'Reproducción de Daphnia en un cultivo de laboratorio', budget: BUDGET, unit: 'neonatos por hembra', truth: TRUE.g,
+    nMin: 12, nMax: 50, nDef: 30, nLabel: () => 'Recipientes a contar', sizeText: res => res.s.length + ' recipientes',
+    strategies: [
+      { k: 'srs', name: 'Aleatorio simple', desc: 'Sorteas recipientes entre los 300, sin mirar el estante.' },
+      { k: 'estr', name: 'Estratificado por estante', desc: 'Sorteas la misma cantidad de recipientes en cada uno de los 6 estantes.' },
+      { k: 'conv', name: 'Por conveniencia', desc: 'Cuentas los recipientes del estante frontal, los más fáciles de alcanzar.' }
+    ],
+    intro: `<p>Un laboratorio mantiene un cultivo de <em>Daphnia</em> para clases prácticas. En una cámara con 6 estantes hay 300 recipientes, cada uno con una hembra adulta del mismo clon y con la misma dieta. Para controlar la calidad del cultivo hay que contar cuántas crías (neonatos) produjo cada hembra en 10 días, y no alcanza el tiempo para contarlas todas.</p><p><strong>Objetivo:</strong> estimar el número medio de neonatos por hembra de todo el cultivo.</p>`,
+    info: `<h3>Lo que sabes antes de decidir</h3>` + tbl(['Estante', 'Recipientes', 'Ubicación'], [[`<i class="dot d2"></i>Estante 1`, 50, 'Junto a la puerta'], [`<i class="dot d0"></i>Estantes 2 a 6`, 250, 'Fondo de la cámara']]) +
+      `<ul class="crit"><li><strong>Presupuesto:</strong> 5 jornadas de laboratorio.</li><li><strong>Costo:</strong> contar las crías de un recipiente cuesta 0,12 jornadas, o 0,08 si es del estante frontal.</li><li><strong>Cámara:</strong> todos los recipientes tienen el mismo clon, el mismo medio y la misma dieta. La puerta se abre varias veces al día. El conteo no daña a los animales: las crías pasan a un recipiente nuevo y las hembras siguen en el cultivo.</li></ul>`,
+    legend: `<span><i class="dot d2"></i>Estante 1 (frontal, junto a la puerta)</span><span><i class="dot d0"></i>Estantes 2 a 6</span><span>Cada cuadradito es un recipiente con una hembra</span>`,
+    heatLabel: 'Ver las crías reales de cada recipiente (más intenso, más crías)',
+    mapSVG: (id, o) => mapSVG(id, { sample: o.sample, heat: o.heat }),
+    draw, estimate, cost,
+    preview(strat, n){
+      const m = mcSeeded(() => { const s = draw(strat, n); return { a: s.filter(i => shOf(i) === 0).length, b: s.filter(i => shOf(i) > 0).length }; }, 60);
+      return { head: ['Estante', 'Recipientes que contarías'], approx: strat === 'srs',
+        rows: [[`<i class="dot d2"></i>${ZON[0]}`, (strat === 'srs' ? '≈ ' : '') + fmt(m.a, strat === 'srs' ? 1 : 0)], [`<i class="dot d0"></i>${ZON[1]}`, (strat === 'srs' ? '≈ ' : '') + fmt(m.b, strat === 'srs' ? 1 : 0)]],
+        note: strat === 'conv' ? 'Todos los recipientes salen del estante frontal.' : (strat === 'srs' ? 'Cuántos recipientes caigan en cada estante lo decide el azar.' : 'Cada estante aporta la misma cantidad de recipientes.') };
+    },
+    detail: res => partsTable('Resultado por zona de la cámara', 'Zona', 'Recipientes', res.e.p.map((q, z) => partRow(z ? 'd0' : 'd2', ZON[z], q, TRUE.p[z])).join('')),
+    feedback,
+    extra: null,
+    quiz: [
+      { q: 'En un cultivo con recipientes homogéneos en una cámara controlada, ¿qué diseño alcanza?', o: [
+        { t: 'Aleatorio simple.', ok: true, f: 'Correcto. Si las unidades son homogéneas, no hay estructura que aprovechar y el diseño más simple es suficiente.' },
+        { t: 'Estratificado por estante, siempre.', ok: false, f: 'Es válido, pero agrega complejidad sin ganancia relevante cuando los estantes son casi iguales. Compruébalo en la comparación de estrategias.' },
+        { t: 'Por conveniencia, porque los recipientes son todos iguales.', ok: false, f: 'Aunque sean casi iguales, elegir los más accesibles puede mezclar el resultado con diferencias de ubicación, como la corriente de aire de la puerta.' } ] },
+      { q: '¿Por qué contar los recipientes del estante frontal produce un sesgo?', o: [
+        { t: 'Ese estante tiene condiciones distintas (temperatura, corriente de aire) que afectan la reproducción.', ok: true, f: 'Correcto. La ubicación se confunde con el rendimiento real del cultivo y la estimación queda corrida.' },
+        { t: 'Porque son pocos recipientes.', ok: false, f: 'El tamaño no es el problema: con los 50 recipientes de ese estante tendrías el mismo sesgo.' },
+        { t: 'Porque ese estante tiene más hembras por recipiente.', ok: false, f: 'Todos los recipientes tienen una hembra.' } ] },
+      { q: '¿Cuándo valdría la pena estratificar por estante?', o: [
+        { t: 'Cuando los estantes difirieran mucho en condiciones que afectan la respuesta.', ok: true, f: 'Correcto. Estratificar rinde cuando los estratos son distintos entre sí y homogéneos por dentro.' },
+        { t: 'Siempre que haya más de un estante.', ok: false, f: 'Si los estantes son casi iguales, estratificar complica el protocolo sin mejorar la precisión.' },
+        { t: 'Nunca, porque el azar compensa todo.', ok: false, f: 'Si hubiera diferencias fuertes entre estantes, estratificar mejoraría mucho la precisión.' } ] }
+    ]
+  };
+}
+
+/* ======================= CASO 5: lagarto tegu ======================= */
+function makeCase5(){
+  const N = 240, ROWS = 20, BUDGET = 20, DET = 0.4, TRAP = 0.2, HANDLE = 0.05, STRIP = 3.0;
+  const { r, gauss } = rngBox(53);
+  const centers = range(6).map(() => [3 + r() * 14, 3 + r() * 14]);
+  const X = [], Yp = [];
+  for(let i = 0; i < N; i++){
+    let x, y;
+    if(r() < 0.65){ const c = centers[Math.floor(r() * 6)]; x = c[0] + 2.2 * gauss(); y = c[1] + 2.2 * gauss(); } else { x = r() * 20; y = r() * 20; }
+    X.push(Math.min(19.99, Math.max(0.01, x))); Yp.push(Math.min(19.99, Math.max(0.01, y)));
+  }
+  const rowOf = i => Math.floor(Yp[i]), ALL = range(N), pcap = n => 1 - Math.exp(-n / 150), tOf = n => Math.max(2, Math.round(n / 10));
+  const TRUE = { g: N };
+  function draw(strat, n){
+    if(strat === 'trans'){ const rows = sampleK(range(ROWS), tOf(n)), set = new Set(rows); return { rows, seen: ALL.filter(i => set.has(rowOf(i)) && Math.random() < DET) }; }
+    const p = pcap(n), s1 = ALL.filter(() => Math.random() < p);
+    if(strat === 'una') return { s1 };
+    const s2 = ALL.filter(() => Math.random() < p), set1 = new Set(s1);
+    return { s1, s2, R: s2.filter(i => set1.has(i)).length };
+  }
+  function estimate(strat, s){
+    if(strat === 'cmr'){
+      const M = s.s1.length, C = s.s2.length, R = s.R, Nh = (M + 1) * (C + 1) / (R + 1) - 1;
+      const se = Math.sqrt((M + 1) * (C + 1) * (M - R) * (C - R) / ((R + 1) * (R + 1) * (R + 2)));
+      return { g: { m: Nh, se, lo: Math.max(M + C - R, Nh - 1.96 * se), hi: Nh + 1.96 * se }, M, C, R };
+    }
+    if(strat === 'una') return { g: { m: s.s1.length, se: NaN, lo: NaN, hi: NaN } };
+    const t = s.rows.length, ys = s.rows.map(rw => s.seen.filter(i => rowOf(i) === rw).length), q = stats(ys);
+    return { g: ci(ROWS * q.m, ROWS * Math.sqrt((1 - t / ROWS) * q.s2 / t), t - 1), seen: s.seen.length, t };
+  }
+  function cost(strat, s, n){
+    if(strat === 'trans') return s.rows.length * STRIP;
+    if(strat === 'una') return n * TRAP + HANDLE * s.s1.length;
+    return 2 * n * TRAP + HANDLE * (s.s1.length + s.s2.length);
+  }
+  function mapSVG(id, o){
+    o = o || {};
+    const cs = 24, S = o.sample;
+    let s = `<svg class="map" viewBox="0 0 480 480" role="img" aria-label="Mapa de la reserva dividida en 20 franjas horizontales">`;
+    s += `<rect x="0" y="0" width="480" height="480" rx="6" fill="var(--surface-2)"/>`;
+    for(let k = 1; k < ROWS; k++) s += `<line x1="0" x2="480" y1="${k * cs}" y2="${k * cs}" stroke="var(--line)" stroke-width="1"/>`;
+    if(S && S.rows) S.rows.forEach(rw => { s += `<rect x="0" y="${rw * cs}" width="480" height="${cs}" fill="var(--accent)" fill-opacity=".18"/>`; });
+    if(o.heat) ALL.forEach(i => { s += `<circle cx="${X[i] * cs}" cy="${Yp[i] * cs}" r="2.8" fill="var(--roquedal)" fill-opacity=".8"/>`; });
+    if(S){
+      const set1 = new Set(S.s1 || []);
+      (S.s1 || []).forEach(i => { s += `<circle cx="${X[i] * cs}" cy="${Yp[i] * cs}" r="5" fill="var(--accent)"><title>Capturado en la sesión 1</title></circle>`; });
+      (S.s2 || []).forEach(i => { s += set1.has(i) ? `<circle cx="${X[i] * cs}" cy="${Yp[i] * cs}" r="6.5" fill="var(--accent)" stroke="var(--good)" stroke-width="3"><title>Recapturado</title></circle>` : `<circle cx="${X[i] * cs}" cy="${Yp[i] * cs}" r="5" fill="var(--good)"><title>Capturado por primera vez en la sesión 2</title></circle>`; });
+      (S.seen || []).forEach(i => { s += `<circle cx="${X[i] * cs}" cy="${Yp[i] * cs}" r="5" fill="var(--accent)"><title>Visto en la franja</title></circle>`; });
+    }
+    return s + '</svg>';
+  }
+  function feedback(res){
+    const e = res.e, ov = overNote(res, BUDGET);
+    if(res.strat === 'cmr') return `<p><strong>Captura-marcado-recaptura.</strong> Marcaste ${e.M} individuos en la primera sesión. En la segunda capturaste ${e.C}, y ${e.R} ya estaban marcados. Esa proporción de marcados (${e.R} de ${e.C}) dice qué fracción de la población habías capturado la primera vez, y de ahí sale el tamaño poblacional (aproximadamente M × C ÷ R).</p><p>Funciona si la población es cerrada y todos tienen la misma probabilidad de captura, algo que en esta simulación se cumple. Con pocas recapturas (${e.R}) el intervalo es muy ancho: más trampas dan más recapturas y estimaciones más precisas.${ov}</p>`;
+    if(res.strat === 'trans') return `<p><strong>Conteo en transectas.</strong> Recorriste ${e.t} franjas y viste ${e.seen} lagartos. El conteo asume que ves todo lo que hay en la franja, pero los lagartos pasan buena parte del tiempo escondidos, así que ves solo una fracción.</p><p>Por eso la estimación (${fmt(res.e.g.m, 0)}) queda muy por debajo del valor real (${N}). El intervalo refleja la variación entre franjas, no esa detección incompleta, y por eso engaña.${ov}</p>`;
+    return `<p><strong>Una sola sesión de captura.</strong> Capturaste ${e.g.m} individuos distintos. Ese número es un mínimo: cuenta los que cayeron en las trampas, no cuántos hay.</p><p>Sin una segunda sesión no sabes qué fracción de la población representan: pueden ser la mitad o una décima parte. No hay manera de calcular un intervalo ni de estimar la abundancia.${ov}</p>`;
+  }
+  return {
+    id: 5, short: 'Lagarto tegu', title: 'Abundancia del lagarto tegu en una reserva', budget: BUDGET, unit: 'individuos', truth: TRUE.g,
+    nMin: 20, nMax: 100, nDef: 30, nLabel: strat => strat === 'trans' ? 'Esfuerzo de recorrido (cada 10 equivale a una franja)' : (strat === 'una' ? 'Trampas en la sesión' : 'Trampas por sesión'),
+    sizeText: res => res.strat === 'trans' ? res.s.rows.length + ' franjas recorridas' : (res.strat === 'una' ? '1 sesión de ' + res.n + ' trampas' : '2 sesiones de ' + res.n + ' trampas'),
+    strategies: [
+      { k: 'cmr', name: 'Captura, marcado y recaptura', desc: 'Dos sesiones de trampeo: marcas en la primera y miras cuántos marcados vuelven en la segunda.' },
+      { k: 'trans', name: 'Conteo directo en transectas', desc: 'Recorres franjas sorteadas y cuentas los lagartos que ves.' },
+      { k: 'una', name: 'Una sola sesión de captura', desc: 'Trampeas una vez y cuentas cuántos individuos distintos capturaste.' }
+    ],
+    intro: `<p>Una reserva provincial protege una población del lagarto tegu, también llamado lagarto overo (<em>Salvator merianae</em>), un animal grande, móvil y esquivo. Se quiere saber cuántos individuos viven en el área, algo que no se puede contar de una sola vez.</p><p><strong>Objetivo:</strong> estimar la abundancia de la población en toda la reserva.</p>`,
+    info: `<h3>Lo que sabes antes de decidir</h3>` + tbl(['Concepto', 'Dato'], [['Superficie', '20 franjas iguales (5 % cada una)'], ['Trampa', '0,2 jornadas por trampa y sesión'], ['Manipular un animal', '0,05 jornadas'], ['Recorrer una franja', '3 jornadas']]) +
+      `<ul class="crit"><li><strong>Presupuesto:</strong> 20 jornadas de campo.</li><li><strong>Comportamiento:</strong> los lagartos pasan buena parte del tiempo escondidos en cuevas y matorral. En un recorrido se ve solo una parte de los que hay.</li><li><strong>Marcado:</strong> los animales capturados pueden marcarse de forma permanente y se liberan en el mismo lugar.</li></ul>`,
+    legend: `<span><i class="dot dA"></i>Capturado en la sesión 1 o visto en el recorrido</span><span><i class="dot dG"></i>Capturado por primera vez en la sesión 2</span><span><i class="dot dA" style="box-shadow:0 0 0 2px var(--good)"></i>Recapturado en la sesión 2</span><span>Franjas sombreadas: recorridas</span>`,
+    heatLabel: 'Ver todos los lagartos de la reserva',
+    mapSVG: (id, o) => mapSVG(id, { sample: o.sample, heat: o.heat }),
+    draw, estimate, cost,
+    preview(strat, n){
+      const rows = strat === 'trans' ? [['Franjas recorridas', tOf(n) + ' de 20'], ['Superficie cubierta', (tOf(n) * 5) + ' %']] : (strat === 'una' ? [['Sesiones de captura', '1'], ['Trampas', n]] : [['Sesiones de captura', '2'], ['Trampas por sesión', n], ['Animales que vas a manipular', 'según lo que caiga']]);
+      return { head: ['Concepto', 'Valor'], approx: true, rows,
+        note: strat === 'trans' ? 'Las franjas se sortean. Solo se cuentan los animales que se ven.' : (strat === 'una' ? 'Solo vas a poder informar cuántos individuos capturaste.' : 'Los animales de la primera sesión se marcan; en la segunda se cuenta cuántos vuelven marcados.') };
+    },
+    detail(res){
+      const e = res.e;
+      if(res.strat === 'cmr') return `<h3>Qué pasó en el campo</h3>` + tbl(['Concepto', 'Valor'], [['Marcados en la sesión 1 (M)', e.M], ['Capturados en la sesión 2 (C)', e.C], ['De ellos, ya marcados (R)', e.R], ['Abundancia estimada', fmt(e.g.m, 0)], ['Valor real', N]]);
+      if(res.strat === 'trans') return `<h3>Qué pasó en el campo</h3>` + tbl(['Concepto', 'Valor'], [['Franjas recorridas', e.t], ['Lagartos vistos', e.seen], ['Abundancia estimada (20 × promedio por franja)', fmt(e.g.m, 0)], ['Valor real', N]]);
+      return `<h3>Qué pasó en el campo</h3>` + tbl(['Concepto', 'Valor'], [['Individuos capturados', e.g.m], ['Valor real', N]]) + '<p class="note" style="margin-top:8px">Un conteo de capturas no es una estimación de abundancia: no hay intervalo posible.</p>';
+    },
+    feedback,
+    extra: { label: 'Estimación por debajo del 70 % del valor real', f: (s, e) => e.g.m < 0.7 * N },
+    quiz: [
+      { q: '¿Qué aporta la recaptura que no da una sola sesión de captura?', o: [
+        { t: 'La proporción de marcados en la segunda sesión permite estimar qué fracción de la población se capturó.', ok: true, f: 'Correcto. Ese dato es el que convierte un conteo de capturas en una estimación de abundancia.' },
+        { t: 'Más individuos capturados.', ok: false, f: 'La segunda sesión puede capturar más animales, pero el aporte clave es otro: la proporción de marcados.' },
+        { t: 'Menor costo por trampa.', ok: false, f: 'La segunda sesión suma costo: el diseño gasta más que una sola sesión.' } ] },
+      { q: 'El conteo en transectas subestimó la abundancia en casi todas las repeticiones. ¿Por qué?', o: [
+        { t: 'Se asumió que se ve todo lo que hay en la franja, pero hay animales escondidos: es un sesgo que más franjas no corrigen.', ok: true, f: 'Correcto. El intervalo mide la variación entre franjas, no la detección incompleta, así que recorrer más franjas solo estrecha el intervalo alrededor de un valor equivocado.' },
+        { t: 'Porque se recorrieron pocas franjas.', ok: false, f: 'Pocas franjas ensanchan el intervalo, pero no corren la estimación siempre hacia abajo.' },
+        { t: 'Porque la reserva es pequeña.', ok: false, f: 'El tamaño de la reserva no explica que se cuenten menos animales de los que hay.' } ] },
+      { q: '¿Qué supuesto es clave para que la captura-recaptura funcione?', o: [
+        { t: 'Población cerrada y la misma probabilidad de captura para todos.', ok: true, f: 'Correcto. Si hay nacimientos, muertes o migración entre sesiones, o si los marcados quedan más o menos propensos a caer, la estimación se corre.' },
+        { t: 'Que todos los individuos sean capturados.', ok: false, f: 'Justamente se necesita que no se capturen todos: la fracción recapturada es la que informa.' },
+        { t: 'Que la segunda sesión use trampas distintas.', ok: false, f: 'No hace falta, y cambiar el esfuerzo entre sesiones complica la interpretación.' } ] }
+    ]
+  };
+}
+
+/* ======================= CASO 6: orquídea endémica ======================= */
+function makeCase6(){
+  const W = 20, H = 20, NT = 400, A_ROWS = 6, BUDGET = 20, COST = 0.35, NA = A_ROWS * W;
+  const { r, pois } = rngBox(61);
+  const inA = i => Math.floor(i / W) < A_ROWS;
+  const nb = i => { const x = i % W, y = Math.floor(i / W), o = []; if(x > 0) o.push(i - 1); if(x < W - 1) o.push(i + 1); if(y > 0) o.push(i - W); if(y < H - 1) o.push(i + W); return o; };
+  const patchOf = new Array(NT).fill(-1), sizes = [5, 4, 4], cents = [[1, 3], [2, 11], [3, 16]];
+  cents.forEach((c, k) => {
+    const c0 = c[0] * W + c[1]; patchOf[c0] = k; const cells = [c0];
+    while(cells.length < sizes[k]){
+      const cand = [];
+      cells.forEach(u => nb(u).forEach(v => { if(inA(v) && patchOf[v] < 0 && !cand.includes(v) && nb(v).every(q => patchOf[q] < 0 || patchOf[q] === k)) cand.push(v); }));
+      if(!cand.length) break;
+      const v = cand[Math.floor(r() * cand.length)]; patchOf[v] = k; cells.push(v);
+    }
+  });
+  const Y = range(NT).map(i => {
+    const k = patchOf[i]; if(k < 0) return 0;
+    const d = Math.abs((i % W) - cents[k][1]) + Math.abs(Math.floor(i / W) - cents[k][0]);
+    return 1 + pois(1 + 40 * Math.exp(-1.0 * d));
+  });
+  const OCC = Y.filter(v => v > 0).length;
+  const net = new Array(NT).fill(-1), netCells = [];
+  range(NT).forEach(i => {
+    if(Y[i] > 0 && net[i] < 0){ const id = netCells.length, q = [i], cells = []; net[i] = id; while(q.length){ const u = q.pop(); cells.push(u); nb(u).forEach(v => { if(Y[v] > 0 && net[v] < 0){ net[v] = id; q.push(v); } }); } netCells.push(cells); }
+  });
+  const netMean = netCells.map(cs => mean(cs.map(u => Y[u])));
+  const ALL = range(NT), AC = ALL.filter(inA), BC = ALL.filter(i => !inA(i));
+  const TRUE = { g: mean(Y), p: [mean(AC.map(i => Y[i])), mean(BC.map(i => Y[i]))] };
+  function draw(strat, n){
+    if(strat === 'srs'){ const init = sampleK(ALL, n); return { init, visited: init }; }
+    if(strat === 'estr'){ const nA = Math.max(2, Math.round(0.3 * n)), init = sampleK(AC, nA).concat(sampleK(BC, n - nA)); return { init, visited: init, nA }; }
+    const init = sampleK(ALL, n), vis = new Set(init);
+    init.forEach(i => { if(Y[i] > 0) netCells[net[i]].forEach(u => { vis.add(u); nb(u).forEach(v => vis.add(v)); }); });
+    return { init, visited: Array.from(vis) };
+  }
+  function estimate(strat, s){
+    const found = Array.from(new Set(s.visited)).reduce((a, i) => a + Y[i], 0), n = s.init.length;
+    let g;
+    if(strat === 'srs') g = srsEst(s.init.map(i => Y[i]), NT);
+    else if(strat === 'estr'){
+      const a = stats(s.init.filter(inA).map(i => Y[i])), b = stats(s.init.filter(i => !inA(i)).map(i => Y[i]));
+      const v = 0.09 * (1 - a.n / NA) * a.s2 / a.n + 0.49 * (1 - b.n / (NT - NA)) * b.s2 / b.n;
+      g = ci(0.3 * a.m + 0.7 * b.m, Math.sqrt(v), n - 2);
+    } else {
+      const w = s.init.map(i => Y[i] > 0 ? netMean[net[i]] : 0), q = stats(w);
+      g = ci(q.m, Math.sqrt((1 - n / NT) * q.s2 / n), n - 1);
+    }
+    const hits = s.init.filter(i => Y[i] > 0).length;
+    return { g, found, hits, extraCells: s.visited.length - n };
+  }
+  const cost = (strat, s) => s.visited.length * COST;
+  function mapSVG(id, o){
+    o = o || {};
+    const cs = 24, S = o.sample, init = new Set(S ? S.init : []), vis = new Set(S ? S.visited : []);
+    let s = `<svg class="map" viewBox="0 0 ${W * cs} ${H * cs}" role="img" aria-label="Mapa de 400 parcelas; las 6 filas superiores son el pastizal de altura">`;
+    ALL.forEach(i => {
+      const x = i % W, y = Math.floor(i / W), a = inA(i), seen = vis.has(i) || o.heat, plant = Y[i] > 0 && seen;
+      const fill = plant ? `fill="var(--orq)" fill-opacity="${0.4 + 0.6 * Math.min(Y[i] / 12, 1)}"` : `class="${a ? 'c1' : 'c0'}" fill-opacity="${a ? 0.55 : 0.28}"`;
+      s += `<rect ${fill} x="${x * cs + 1}" y="${y * cs + 1}" width="${cs - 2}" height="${cs - 2}" rx="3"><title>${a ? 'Pastizal de altura' : 'Resto del sector'}${seen ? ', ' + Y[i] + ' plantas' : ''}</title></rect>`;
+    });
+    s += `<line x1="0" x2="${W * cs}" y1="${A_ROWS * cs}" y2="${A_ROWS * cs}" stroke="var(--ink)" stroke-width="1.5" stroke-dasharray="6 4"/>`;
+    vis.forEach(i => { const x = i % W, y = Math.floor(i / W); if(!init.has(i)) s += `<rect x="${x * cs + 5}" y="${y * cs + 5}" width="${cs - 10}" height="${cs - 10}" fill="none" stroke="var(--accent)" stroke-width="2"/>`; else s += `<circle cx="${x * cs + cs / 2}" cy="${y * cs + cs / 2}" r="6.5" fill="${Y[i] > 0 ? 'var(--orq)' : 'var(--surface)'}" stroke="var(--ink)" stroke-width="2.2"/>`; });
+    return s + '</svg>';
+  }
+  function pNone(n){ let p = 1; for(let k = 0; k < n; k++) p *= (NT - OCC - k) / (NT - k); return p; }
+  function feedback(res){
+    const e = res.e, ov = overNote(res, BUDGET), n = res.n;
+    if(res.strat === 'srs') return `<p><strong>Aleatorio simple.</strong> Sorteaste ${n} parcelas y ${e.hits === 0 ? 'ninguna tenía orquídeas' : 'solo ' + e.hits + ' tenía' + (e.hits > 1 ? 'n' : '') + ' orquídeas'} (hay ${OCC} con orquídeas entre las 400). Como la especie es rara y está agrupada, con este tamaño de muestra hay alrededor de ${fmt(pNone(n) * 100, 0)} % de probabilidad de no encontrar ninguna.</p><p>El diseño no tiene sesgo, pero la estimación cambia mucho de una muestra a otra: depende de caer o no en un parche. Repite el muestreo para verlo.${ov}</p>`;
+    if(res.strat === 'estr') return `<p><strong>Estratificado por piso altitudinal.</strong> Concentraste el esfuerzo (${res.s.nA} parcelas) en el pastizal de altura, que es el 30 % del sector y donde se ha registrado la especie. Como el resto del sector no aporta variabilidad, la precisión puede mejorar un poco.</p><p>Pero dentro del pastizal las plantas siguen concentradas en pocos parches, así que la ganancia es pequeña y las muestras sin hallazgos siguen existiendo (${e.hits === 0 ? 'esta fue una' : 'esta vez encontraste ' + e.hits + ' parcelas con orquídeas'}).${ov}</p>`;
+    return `<p><strong>Adaptativo por conglomerados.</strong> Elegiste ${n} parcelas iniciales. Cada vez que apareció una orquídea, ampliaste a las parcelas vecinas hasta rodear el parche. ${e.hits === 0 ? 'Esta vez ninguna parcela inicial tuvo orquídeas, así que no hubo ampliación.' : `Las ${e.hits} parcelas iniciales con orquídeas llevaron a inspeccionar ${e.extraCells} parcelas más.`}</p><p>La estimación usa un estimador específico (Hansen y Hurwitz modificado) que corrige por haber seguido a los parches. El límite es el esfuerzo: terminaste con ${res.s.visited.length} parcelas inspeccionadas (${fmt(res.cost)} jornadas) y eso no se puede prever, un parche grande puede agotar el presupuesto. Para comparar con justicia con otros diseños, conviene igualar el esfuerzo: sube el tamaño del aleatorio simple hasta gastar lo mismo.${ov}</p>`;
+  }
+  return {
+    id: 6, short: 'Orquídea endémica', title: 'Una orquídea rara en el pastizal de altura', budget: BUDGET, unit: 'plantas por parcela', truth: TRUE.g,
+    nMin: 10, nMax: 60, nDef: 30, nLabel: strat => strat === 'acs' ? 'Parcelas iniciales' : 'Parcelas a muestrear', sizeText: res => res.s.visited.length + ' parcelas inspeccionadas',
+    strategies: [
+      { k: 'srs', name: 'Aleatorio simple', desc: 'Sorteas parcelas entre las 400, sin mirar la zona.' },
+      { k: 'estr', name: 'Estratificado por piso altitudinal', desc: 'Separas el pastizal de altura del resto y sorteas parcelas en cada zona, en proporción a su superficie.' },
+      { k: 'acs', name: 'Adaptativo por conglomerados', desc: 'Sorteas parcelas iniciales y, si encuentras la especie, inspeccionas también las vecinas.' }
+    ],
+    intro: `<p>Una orquídea endémica solo se conoce de unos pocos parches en el pastizal de altura de las sierras. Un equipo de conservación quiere estimar su abundancia en un sector de 400 parcelas, sabiendo que casi todas están vacías y que donde aparece suele haber varias plantas juntas.</p><p><strong>Objetivo:</strong> estimar el número medio de plantas por parcela en todo el sector.</p>`,
+    info: `<h3>Lo que sabes antes de decidir</h3>` + tbl(['Zona', 'Parcelas', 'Superficie'], [[`<i class="dot d1"></i>Pastizal de altura`, NA, '30 %'], [`<i class="dot d0"></i>Resto del sector`, NT - NA, '70 %']]) +
+      `<ul class="crit"><li><strong>Presupuesto:</strong> 20 jornadas de campo.</li><li><strong>Búsqueda:</strong> inspeccionar una parcela cuesta 0,35 jornadas, porque hay que buscar con cuidado.</li><li><strong>Registros previos:</strong> la especie solo se ha encontrado en el pastizal de altura, en pocos parches separados entre sí.</li></ul>`,
+    legend: `<span><i class="dot d1"></i>Pastizal de altura</span><span><i class="dot d0"></i>Resto del sector</span><span><i class="dot dO"></i>Parcela con orquídeas</span><span>Círculo: parcela inicial. Cuadrado: parcela agregada al seguir un parche.</span>`,
+    heatLabel: 'Ver dónde está realmente la orquídea',
+    mapSVG: (id, o) => mapSVG(id, { sample: o.sample, heat: o.heat }),
+    draw, estimate, cost,
+    preview(strat, n){
+      const m = mcSeeded(() => { const s = draw(strat, n); return { v: s.visited.length, a: s.init.filter(inA).length }; }, 80);
+      return { head: ['Concepto', 'Valor'], approx: strat === 'acs' || strat === 'srs',
+        rows: strat === 'acs'
+          ? [['Parcelas iniciales', n], ['Parcelas inspeccionadas en total', '≈ ' + fmt(m.v, 0) + ' (depende de lo que encuentres)']]
+          : [['Parcelas en el pastizal de altura', (strat === 'srs' ? '≈ ' : '') + fmt(m.a, strat === 'srs' ? 1 : 0)], ['Parcelas en el resto del sector', (strat === 'srs' ? '≈ ' : '') + fmt(n - m.a, strat === 'srs' ? 1 : 0)]],
+        note: strat === 'acs' ? 'Si una parcela inicial tiene orquídeas, se inspeccionan las vecinas, y así hasta rodear el parche.' : (strat === 'estr' ? 'Cada zona tiene garantizadas sus parcelas (mínimo 2).' : 'Cuántas parcelas caigan en cada zona lo decide el azar.') };
+    },
+    detail: res => `<h3>Qué encontraste</h3>` + tbl(['Concepto', 'Valor'], [['Parcelas iniciales', res.n], ['Parcelas agregadas por el muestreo adaptativo', res.e.extraCells], ['Parcelas iniciales con orquídeas', res.e.hits], ['Plantas contadas en total', res.e.found]]) + '<p class="note" style="margin-top:8px">Por zona no se muestra intervalo: con tan pocas parcelas con orquídeas no hay datos para calcularlo.</p>',
+    feedback,
+    extra: { label: 'No se encontró ninguna planta', f: (s, e) => e.found === 0 },
+    quiz: [
+      { q: '¿Por qué el aleatorio simple funciona mal con una especie rara y agrupada?', o: [
+        { t: 'Muchas muestras no caen en ningún parche, y las que caen dan valores muy distintos.', ok: true, f: 'Correcto. La estimación es muy variable: depende de que el sorteo caiga o no en un parche.' },
+        { t: 'Porque sesga la estimación hacia valores altos.', ok: false, f: 'No tiene sesgo. El problema es la altísima variabilidad entre muestras.' },
+        { t: 'Porque exige más parcelas que cualquier otro diseño.', ok: false, f: 'No es una cuestión de cuántas parcelas, sino de dónde se mira.' } ] },
+      { q: '¿Qué ventaja tiene el muestreo adaptativo por conglomerados?', o: [
+        { t: 'Dedica esfuerzo extra alrededor de donde aparece la especie, que es donde hay información.', ok: true, f: 'Correcto. Concentra el trabajo donde la especie existe en lugar de repartirlo entre parcelas vacías.' },
+        { t: 'Siempre cuesta menos que los otros diseños.', ok: false, f: 'No: el esfuerzo es variable y suele ser mayor, porque se inspeccionan parcelas adicionales.' },
+        { t: 'No necesita sortear parcelas iniciales.', ok: false, f: 'Sí las necesita: el muestreo adaptativo arranca con una muestra inicial al azar.' } ] },
+      { q: '¿Qué limitación hay que tener en cuenta al planificarlo?', o: [
+        { t: 'El esfuerzo total no se conoce de antemano.', ok: true, f: 'Correcto. Depende de cuántos parches aparezcan y de su tamaño, así que conviene dejar margen de presupuesto.' },
+        { t: 'Solo sirve con especies abundantes.', ok: false, f: 'Al contrario: se diseñó para especies raras y agrupadas.' },
+        { t: 'No permite calcular un intervalo de confianza.', ok: false, f: 'Sí permite, con estimadores específicos como el de Hansen y Hurwitz modificado.' } ] }
+    ]
+  };
+}
+
+/* ======================= CASO 7: humedal con gradiente de lámina de agua y recambio temporal ======================= */
+function makeCase7(){
+  const W = 20, HH = 8, NP = W * HH, T = 4, NU = NP * T, BUDGET = 20, S0 = 130, SH = 5;
+  const F = [0, 30, 50, 20], EP = ['Época seca', 'Ascenso del agua', 'Aguas altas', 'Descenso del agua'];
+  const { r, gauss } = rngBox(71);
+  const micro = range(NP).map(() => 3 * gauss());
+  const depth = (p, t) => -10 + 4 * (p % W) + F[t] + micro[p];
+  const sp = range(S0).map(s => ({ mu: -15 + 140 * (s + r()) / S0, sig: 8 + 6 * r(), pm: 0.04 + 0.8 * Math.pow(r(), 2) }));
+  const PRES = range(NU).map(u => { const t = Math.floor(u / NP), p = u % NP, d = depth(p, t), o = []; sp.forEach((q, s) => { if(r() < q.pm * Math.exp(-0.5 * Math.pow((d - q.mu) / q.sig, 2))) o.push(s); }); return o; });
+  const allSp = new Set(); PRES.forEach(a => a.forEach(s => allSp.add(s)));
+  const TRUE = allSp.size;
+  const ALPHA = range(T).map(t => mean(range(NP).map(p => PRES[t * NP + p].length)));
+  const SEASON_S = range(T).map(t => { const z = new Set(); range(NP).forEach(p => PRES[t * NP + p].forEach(s => z.add(s))); return z.size; });
+  const SHORE = range(NU).filter(u => (u % NP) % W < SH);
+  const seasonsOf = us => new Set(us.map(u => Math.floor(u / NP))).size;
+  function draw(strat, n){
+    if(strat === 'seca') return { units: sampleK(range(NP), n) };
+    if(strat === 'srs') return { units: sampleK(range(NU), n) };
+    if(strat === 'estr'){ const b = Math.floor(n / T); let o = []; for(let t = 0; t < T; t++) o = o.concat(sampleK(range(NP), b + (t < n - T * b ? 1 : 0)).map(p => t * NP + p)); return { units: o }; }
+    return { units: sampleK(SHORE, n) };
+  }
+  function chao2(units){
+    const c = {}; units.forEach(u => PRES[u].forEach(s => { c[s] = (c[s] || 0) + 1; }));
+    const ks = Object.keys(c); let q1 = 0, q2 = 0; ks.forEach(k => { if(c[k] === 1) q1++; else if(c[k] === 2) q2++; });
+    const m = units.length, A = (m - 1) / m, obs = ks.length;
+    let f0, lo = NaN, hi = NaN, se = NaN;
+    if(q2 > 0){
+      f0 = A * q1 * q1 / (2 * q2);
+      const rr = q1 / q2, v = q2 * (A / 2 * rr * rr + A * A * Math.pow(rr, 3) + A * A / 4 * Math.pow(rr, 4)); se = Math.sqrt(v);
+      if(f0 > 0){ const K = Math.exp(1.96 * Math.sqrt(Math.log(1 + v / (f0 * f0)))); lo = obs + f0 / K; hi = obs + f0 * K; }
+      else { lo = obs; hi = obs; }
+    } else f0 = A * q1 * (q1 - 1) / 2;
+    return { g: { m: obs + f0, se, lo, hi }, obs, q1, q2 };
+  }
+  function estimate(strat, s){
+    const e = chao2(s.units), by = range(T).map(t => { const us = s.units.filter(u => Math.floor(u / NP) === t), z = new Set(); us.forEach(u => PRES[u].forEach(x => z.add(x))); return { n: us.length, obs: z.size }; });
+    e.by = by; return e;
+  }
+  function cost(strat, s){
+    const k = seasonsOf(s.units), n = s.units.length;
+    if(strat === 'conv') return 0.5 * k + 0.10 * n;
+    return 1.5 * k + 0.15 * n;
+  }
+  function mapSVG(id, o){
+    o = o || {};
+    const cs = 9, S = o.sample, mark = new Set(S ? S.units : []);
+    let s = `<svg class="map" viewBox="0 0 376 204" role="img" aria-label="Cuatro mapas del humedal, uno por época. En cada uno, la orilla está a la izquierda y el centro a la derecha.">`;
+    for(let t = 0; t < T; t++){
+      const x0 = (t % 2) * 196, y0 = Math.floor(t / 2) * 104;
+      s += `<text class="lbl" x="${x0}" y="${y0 + 11}">${EP[t]}</text>`;
+      for(let p = 0; p < NP; p++){
+        const x = p % W, y = Math.floor(p / W), d = depth(p, t), cx = x0 + x * cs, cy = y0 + 16 + y * cs;
+        const fill = o.heat ? (d <= 0 ? `fill="var(--pastizal)" fill-opacity=".35"` : `fill="var(--agua)" fill-opacity="${(0.15 + 0.85 * Math.min(d / 120, 1)).toFixed(2)}"`) : `fill="var(--surface-2)" stroke="var(--line)" stroke-width=".6"`;
+        s += `<rect ${fill} x="${cx + 0.5}" y="${cy + 0.5}" width="${cs - 1}" height="${cs - 1}" rx="1.5"><title>${EP[t]}, ${o.heat ? (d <= 0 ? 'suelo sin agua' : 'lámina de agua de ' + Math.round(d) + ' cm') : 'parcela'}</title></rect>`;
+        if(mark.has(t * NP + p)) s += `<circle cx="${cx + cs / 2}" cy="${cy + cs / 2}" r="3" fill="var(--accent)" stroke="var(--ink)" stroke-width="1"/>`;
+      }
+      s += `<text class="lbl" x="${x0}" y="${y0 + 16 + HH * cs + 9}" style="font-size:8px">orilla</text><text class="lbl" x="${x0 + W * cs}" y="${y0 + 16 + HH * cs + 9}" text-anchor="end" style="font-size:8px">centro</text>`;
+    }
+    return s + '</svg>';
+  }
+  function feedback(res){
+    const e = res.e, ov = overNote(res, BUDGET), n = res.n, obsPct = fmt(e.obs / TRUE * 100, 0), by = e.by, nSeas = by.filter(b => b.n > 0).length;
+    const lim = isFinite(e.g.lo) ? '' : ' No fue posible calcular un intervalo, porque ninguna especie apareció exactamente en dos unidades.';
+    if(res.strat === 'seca') return `<p><strong>Aleatorio simple, solo en la época seca.</strong> Sorteaste ${n} parcelas y observaste ${e.obs} especies (${obsPct} % de las ${TRUE} que existen en el humedal a lo largo del año).</p><p>El estimador (Chao2) puede completar las especies que faltan <em>dentro de esa época</em>, pero no las que solo aparecen cuando el agua sube: esas no dejan ninguna huella en tu muestra. Por eso la estimación se queda corta aunque aumentes el número de parcelas, y el intervalo falla con frecuencia (no incluye el valor real en muchas repeticiones).${lim}${ov}</p>`;
+    if(res.strat === 'srs') return `<p><strong>Aleatorio simple en el espacio y en el tiempo.</strong> Sorteaste ${n} unidades entre las ${NU} combinaciones de parcela y época. Por azar, quedaron ${by.map(b => b.n).join(', ')} unidades en las cuatro épocas, y observaste ${e.obs} especies (${obsPct} % del total).</p><p>No hay sesgo de diseño: todas las épocas y toda la lámina de agua tienen la misma probabilidad de ser visitadas. Chao2 usa las especies vistas una sola vez o dos veces para estimar las que faltan. Es un estimador de límite inferior, así que tiende a quedarse algo corto, sobre todo con pocas unidades.${lim}${ov}</p>`;
+    if(res.strat === 'estr') return `<p><strong>Estratificado por época.</strong> Repartiste las ${n} unidades en partes iguales entre las cuatro épocas (${by.map(b => b.n).join(', ')}) y observaste ${e.obs} especies (${obsPct} % del total).</p><p>Asegurar la presencia de todas las épocas evita que el azar deje alguna sin visitar. Aquí la ganancia respecto del aleatorio simple es pequeña, porque con este esfuerzo el azar ya suele repartir unidades en todas las épocas. Con pocas unidades la diferencia se nota más.${lim}${ov}</p>`;
+    return `<p><strong>Por conveniencia, parcelas cercanas a la orilla.</strong> Muestreaste ${n} unidades en las cinco primeras columnas de cada mapa, las que se alcanzan a pie, y en ${nSeas} épocas. Observaste ${e.obs} especies (${obsPct} % del total).</p><p>La orilla cambia de lámina de agua a lo largo del año, pero nunca llega a la profundidad del centro del humedal. Las especies que viven en aguas profundas tienen probabilidad cero de entrar en tu muestra, y ningún estimador puede predecirlas. El diseño es barato (${fmt(res.cost)} jornadas) pero el intervalo casi nunca incluye el valor real.${lim}${ov}</p>`;
+  }
+  return {
+    id: 7, short: 'Humedal', title: 'La flora de un humedal que sube y baja', budget: BUDGET, unit: 'especies de plantas en el año', truth: TRUE,
+    nMin: 20, nMax: 120, nDef: 60, nStep: 4, nLabel: strat => strat === 'seca' ? 'Parcelas a muestrear (época seca)' : 'Unidades de muestreo (parcela en una época)',
+    sizeText: res => res.s.units.length + ' unidades en ' + seasonsOf(res.s.units) + (seasonsOf(res.s.units) === 1 ? ' época' : ' épocas'),
+    strategies: [
+      { k: 'seca', name: 'Aleatorio simple, solo en la época seca', desc: 'Sorteas parcelas entre las 160 y las visitas una sola vez, en la época de campo más fácil.' },
+      { k: 'srs', name: 'Aleatorio simple en el espacio y en el tiempo', desc: 'Sorteas unidades entre las 640 combinaciones de parcela y época, sin mirar ni la orilla ni el calendario.' },
+      { k: 'estr', name: 'Estratificado por época', desc: 'Repartes el esfuerzo en partes iguales entre las cuatro épocas y sorteas las parcelas dentro de cada una.' },
+      { k: 'conv', name: 'Por conveniencia, parcelas de la orilla', desc: 'Visitas en las cuatro épocas solo las parcelas cercanas a la orilla, que se alcanzan a pie y con menos logística.' }
+    ],
+    intro: `<p>En un humedal de llanura, el agua no se queda quieta. En el espacio, la lámina de agua aumenta desde la orilla hasta el centro. En el tiempo, todo el gradiente sube y baja con las estaciones. Cada especie de planta vive en un rango de profundidad, así que, cuando el agua sube, las especies de cada parcela son reemplazadas por otras.</p><p>El resultado es una paradoja: cada parcela tiene una riqueza parecida en todas las épocas (el equipo contó unas 6 o 7 especies por parcela), pero casi no comparte especies con ella misma en otra época. La diversidad total se mantiene a lo largo del año; lo que cambia es quién la forma.</p><p><strong>Objetivo:</strong> estimar el número total de especies de plantas del humedal a lo largo de un ciclo anual, con un presupuesto de campo limitado.</p>`,
+    info: `<h3>Lo que sabes antes de decidir</h3>` + tbl(['Época', 'Lámina en la orilla (cm)', 'Lámina en el centro (cm)'], F.map((f, t) => [EP[t], fmt(Math.max(0, -10 + f), 0), fmt(66 + f, 0)])) +
+      `<ul class="crit"><li><strong>Parcelas:</strong> 160 por época (8 filas por 20 columnas), de la orilla al centro.</li><li><strong>Presupuesto:</strong> 20 jornadas de campo.</li><li><strong>Costo:</strong> cada parcela visitada cuesta 0,15 jornadas, y cada campaña de una época suma 1,5 jornadas de logística (bote, botas, traslado). Cerca de la orilla se llega a pie: 0,10 por parcela y 0,5 por campaña.</li><li><strong>Estimador:</strong> Chao2, que usa cuántas especies aparecen en una sola unidad y en dos unidades para estimar las que no se vieron. Es un límite inferior.</li></ul>`,
+    legend: `<span><i class="dot dW"></i>Lámina de agua (más oscuro, más profundo)</span><span><i class="dot d1"></i>Suelo sin agua</span><span>En cada mapa, la orilla está a la izquierda y el centro a la derecha.</span><span>Círculo: unidad muestreada (parcela en una época).</span>`,
+    heatLabel: 'Ver la lámina de agua en cada época',
+    mapSVG: (id, o) => mapSVG(id, { sample: o.sample, heat: o.heat }),
+    draw, estimate, cost,
+    preview(strat, n){
+      const m = mcSeeded(() => { const s = draw(strat, n), o = {}; range(T).forEach(t => { o['t' + t] = s.units.filter(u => Math.floor(u / NP) === t).length; }); return o; }, 80);
+      const ap = strat === 'srs' || strat === 'conv';
+      return { head: ['Época', 'Unidades de muestreo'], approx: ap,
+        rows: range(T).map(t => [EP[t], (ap ? '≈ ' : '') + fmt(m['t' + t], ap ? 1 : 0)]),
+        note: strat === 'seca' ? 'Todo el esfuerzo se hace en una sola época, con una sola campaña.' : (strat === 'estr' ? 'Cada época recibe la misma cantidad de unidades.' : 'Cuántas unidades caigan en cada época lo decide el azar.') };
+    },
+    detail: res => `<h3>Qué encontraste en cada época</h3>` + tbl(['Época', 'Unidades', 'Especies observadas', 'Riqueza media por parcela (real)', 'Especies en el humedal esa época (real)'], res.e.by.map((b, t) => [EP[t], b.n, b.n ? b.obs : 'Sin datos', fmt(ALPHA[t]), SEASON_S[t]])) + `<p class="note" style="margin-top:8px">Fíjate en las dos últimas columnas: la riqueza por parcela es parecida en todas las épocas y cada época tiene muchas especies, pero el total del año (${TRUE}) es mucho mayor que cualquiera de ellas, porque las especies cambian. Especies observadas en total: ${res.e.obs}. Vistas en una sola unidad: ${res.e.q1}. Vistas en dos unidades: ${res.e.q2}.</p>`,
+    feedback,
+    extra: { label: 'Se observó menos del 75 % de las especies', f: (s, e) => e.obs < 0.75 * TRUE },
+    quiz: [
+      { q: '¿Por qué muestrear solo en la época seca subestima la riqueza total, aunque se visiten muchas parcelas?', o: [
+        { t: 'Porque muchas especies solo están presentes cuando la lámina de agua es otra, y en esa época no se las puede encontrar.', ok: true, f: 'Correcto. Más parcelas en la misma época agregan poca información nueva: las especies de otras épocas no están disponibles en esa muestra.' },
+        { t: 'Porque en la época seca cada parcela tiene menos especies.', ok: false, f: 'No: la riqueza por parcela es parecida en todas las épocas. Lo que cambia son las especies.' },
+        { t: 'Porque Chao2 no funciona con muchas parcelas.', ok: false, f: 'Chao2 funciona con muchas unidades. El problema es que el diseño nunca observa buena parte de las especies.' } ] },
+      { q: 'La riqueza por parcela es parecida en todas las épocas, pero casi no se repiten las especies. ¿Qué indica esto?', o: [
+        { t: 'Que hay un fuerte recambio de especies: la diversidad local se mantiene, pero cambia su composición.', ok: true, f: 'Correcto. Es una diversidad beta alta en el tiempo, resultado de que cada especie ocupa un rango de profundidad distinto.' },
+        { t: 'Que no hay recambio, porque la riqueza no cambia.', ok: false, f: 'La riqueza por parcela puede ser constante aunque todas las especies sean reemplazadas.' },
+        { t: 'Que el humedal es homogéneo en el espacio.', ok: false, f: 'Al contrario: la lámina de agua cambia de la orilla al centro, y con ella las especies.' } ] },
+      { q: '¿Qué conviene hacer para estimar la riqueza total del humedal?', o: [
+        { t: 'Repartir el esfuerzo entre todas las épocas y a lo largo del gradiente de lámina de agua.', ok: true, f: 'Correcto. Hay que cubrir la variación en el espacio y en el tiempo, porque ahí está el recambio.' },
+        { t: 'Concentrar las parcelas en la orilla porque es más barato llegar.', ok: false, f: 'Es barato, pero las especies de aguas profundas nunca entran en la muestra. El sesgo no se corrige con más parcelas.' },
+        { t: 'Aumentar el número de parcelas en una sola época.', ok: false, f: 'Más parcelas en una sola época mejoran la estimación de esa época, no la del año.' } ] }
+    ]
+  };
+}
+
+const CASES = { 1: makeCase1(), 2: makeCase2(), 3: makeCase3(), 4: makeCase4(), 5: makeCase5(), 6: makeCase6(), 7: makeCase7() };
+
+function runMany(C, strat, n, reps){
+  const est = [], cov = [], ext = [], cs = []; let withCI = 0;
+  for(let k = 0; k < reps; k++){
+    const s = C.draw(strat, n), e = C.estimate(strat, s), c = C.cost(strat, s, n);
+    est.push(e.g.m);
+    if(isFinite(e.g.lo) && isFinite(e.g.hi)){ withCI++; cov.push(e.g.lo <= C.truth && C.truth <= e.g.hi); }
+    cs.push(c); ext.push(C.extra ? !!C.extra.f(s, e, c) : false);
+  }
+  const m = mean(est), sd = Math.sqrt(est.reduce((a, b) => a + (b - m) * (b - m), 0) / (est.length - 1));
+  return { est, mean: m, bias: m - C.truth, sd, cov: withCI ? mean(cov.map(Number)) * 100 : NaN, ext: mean(ext.map(Number)) * 100, cost: mean(cs) };
+}
+/*MODEL-END*/
+
+/* ---------- Interfaz ---------- */
+const $ = s => document.querySelector(s);
+const STEPS = ['El problema', 'Tu diseño', 'Consecuencias', 'Revisión y cierre'];
+let C = CASES[1];
+const st = { step: 1, strat: 'srs', n: 30, res: null, heat: false };
+const stratName = k => C.strategies.find(x => x.k === k).name;
+
+function renderSteps(){
+  $('#steps').innerHTML = STEPS.map((t, i) => {
+    const n = i + 1, dis = n >= 3 && !st.res;
+    return `<li><button class="stepbtn" type="button" data-go="${n}" ${n === st.step ? 'aria-current="step"' : ''} ${dis ? 'disabled' : ''}><b>${n}</b>${t}</button></li>`;
+  }).join('');
+}
+function go(n){
+  if(n >= 3 && !st.res) return;
+  st.step = n;
+  document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('on', i + 1 === n));
+  renderSteps();
+  if(n === 2) renderPreview();
+  if(n === 3) renderResults();
+  if(n === 4) renderClosing();
+  const t = $('#steps'); if(t && t.scrollIntoView) t.scrollIntoView({ block: 'start' });
+}
+function buildCase(){
+  $('#cases').innerHTML = Object.keys(CASES).map(k => `<li><button class="case" type="button" data-case="${k}" ${+k === C.id ? 'aria-current="true"' : ''}>Caso ${k} · ${CASES[k].short}</button></li>`).join('');
+  $('#t1').textContent = C.title; $('#intro').innerHTML = C.intro; $('#infoCard').innerHTML = C.info;
+  $('#map1').innerHTML = C.mapSVG('m1', {});
+  ['#legend1', '#legend2', '#legend3'].forEach(s => { $(s).innerHTML = C.legend; });
+  $('#heatLabel').textContent = C.heatLabel; $('#heat').checked = false;
+  $('#stratOpts').innerHTML = '<legend>¿Cómo eliges las unidades de muestreo?</legend>' + C.strategies.map(x =>
+    `<label class="opt"><input type="radio" name="strat" value="${x.k}" ${x.k === st.strat ? 'checked' : ''}><div><strong>${x.name}</strong><span>${x.desc}</span></div></label>`).join('');
+  const rg = $('#nRange'); rg.min = C.nMin; rg.max = C.nMax; rg.step = C.nStep || 1; rg.value = st.n; $('#nOut').textContent = st.n;
+  $('#quiz').innerHTML = C.quiz.map((q, i) => `<div class="q"><strong>${i + 1}. ${q.q}</strong><div class="ch">${q.o.map((o, j) => `<button class="qb" type="button" data-q="${i}" data-o="${j}">${o.t}</button>`).join('')}</div><p class="qf" id="qf${i}" role="status"></p></div>`).join('');
+  $('#manyOut').innerHTML = ''; $('#cmpOut').innerHTML = '';
+}
+function setCase(id){
+  C = CASES[id]; st.strat = C.strategies[0].k; st.n = C.nDef; st.res = null; st.heat = false; $('#fund').value = '';
+  buildCase(); go(1);
+}
+function renderPreview(){
+  $('#nLabel').textContent = C.nLabel(st.strat);
+  const pv = C.preview(st.strat, st.n);
+  $('#prevHead').innerHTML = `<tr><th>${pv.head[0]}</th><th class="num">${pv.head[1]}</th></tr>`;
+  $('#prevTabla').innerHTML = pv.rows.map(r => `<tr><td>${r[0]}</td><td class="num">${r[1]}</td></tr>`).join('');
+  $('#prevNote').textContent = pv.note;
+  const c = C.expCost ? C.expCost(st.strat, st.n) : mcSeeded(() => ({ c: C.cost(st.strat, C.draw(st.strat, st.n), st.n) }), 80).c;
+  const approx = pv.approx || !C.expCost, pct = c / C.budget * 100;
+  $('#costTxt').textContent = (approx ? '≈ ' : '') + fmt(c) + ' de ' + C.budget + ' jornadas';
+  const f = $('#costFill'); f.style.width = Math.min(pct, 100) + '%'; f.className = 'fill' + (pct > 100 ? ' bad' : (pct > 85 ? ' warn' : ''));
+  $('#costNote').textContent = pct > 100 ? 'Con este diseño es probable que no te alcancen las jornadas. Reduce el esfuerzo o cambia la estrategia.' : (pct > 85 ? 'Estás cerca del límite del presupuesto.' : 'El esfuerzo entra en el presupuesto.');
+  $('#map2').innerHTML = C.mapSVG('m2', {});
+}
+function take(){
+  const s = C.draw(st.strat, st.n), e = C.estimate(st.strat, s);
+  st.res = { strat: st.strat, n: st.n, s, e, cost: C.cost(st.strat, s, st.n) };
+  $('#manyOut').innerHTML = ''; $('#cmpOut').innerHTML = '';
+  go(3);
+}
+function drawMap3(){ $('#map3').innerHTML = C.mapSVG('m3', { sample: st.res ? st.res.s : null, heat: st.heat }); }
+function renderResults(){
+  const r = st.res, g = r.e.g, hasCI = isFinite(g.lo) && isFinite(g.hi), inside = hasCI && g.lo <= C.truth && C.truth <= g.hi, err = g.m - C.truth;
+  const pill = !hasCI ? '<span class="pill mute">Sin intervalo posible</span>' : (inside ? '<span class="pill good">El IC incluye el valor real</span>' : '<span class="pill bad">El IC no incluye el valor real</span>');
+  $('#tiles').innerHTML = `<div class="tiles">
+    <div class="tile"><span class="tl">Tu estimación</span><strong>${fmt(g.m)}</strong><span class="ts">${hasCI ? 'IC 95 %: ' + fmt(g.lo) + ' a ' + fmt(g.hi) : 'Sin intervalo'}</span></div>
+    <div class="tile"><span class="tl">Valor real</span><strong>${fmt(C.truth)}</strong><span class="ts">${C.unit}</span></div>
+    <div class="tile"><span class="tl">Error</span><strong>${err > 0 ? '+' : ''}${fmt(err)}</strong><span class="ts">${pill}</span></div>
+    <div class="tile"><span class="tl">Esfuerzo</span><strong>${fmt(r.cost)}</strong><span class="ts">${r.cost > C.budget ? '<span class="pill bad">Supera las ' + C.budget + ' jornadas</span>' : 'de ' + C.budget + ' jornadas'}</span></div>
+  </div>
+  <p class="note" style="margin:8px 0 0">${stratName(r.strat)}, ${C.sizeText(r)}. Estimación en ${C.unit}. IC 95 % es el rango que, con este diseño, se espera que contenga el valor real.</p>`;
+  $('#pisoTabla').innerHTML = C.detail(r);
+  $('#devol').innerHTML = C.feedback(r);
+  drawMap3();
+}
+function tickStep(range){ const steps = [1, 2, 5, 10, 20, 50, 100, 200, 500]; for(const s of steps) if(range / s <= 9) return s; return 1000; }
+function histSVG(vals, lo, hi, truth, alt){
+  const w = 560, h = 104, pad = 22, bins = 28, cnt = new Array(bins).fill(0);
+  vals.forEach(v => { let b = Math.floor((v - lo) / (hi - lo) * bins); b = Math.max(0, Math.min(bins - 1, b)); cnt[b]++; });
+  const mx = Math.max.apply(null, cnt), bw = (w - 2 * pad) / bins;
+  let s = `<svg class="hist" viewBox="0 0 ${w} ${h + 24}" role="img" aria-label="${alt}">`;
+  cnt.forEach((c, i) => { const bh = c / mx * (h - 22); s += `<rect x="${pad + i * bw + 1}" y="${h - bh}" width="${bw - 2}" height="${bh}" rx="1.5" fill="var(--accent)" fill-opacity=".85"/>`; });
+  s += `<line x1="${pad}" x2="${w - pad}" y1="${h}" y2="${h}" stroke="var(--line)"/>`;
+  const ts = tickStep(hi - lo);
+  for(let t = Math.ceil(lo / ts) * ts; t <= hi; t += ts){ const x = pad + (t - lo) / (hi - lo) * (w - 2 * pad); s += `<text class="tick" x="${x}" y="${h + 16}" text-anchor="middle">${t}</text>`; }
+  const tx = pad + (truth - lo) / (hi - lo) * (w - 2 * pad), right = tx > w - 130;
+  s += `<line x1="${tx}" x2="${tx}" y1="4" y2="${h}" stroke="var(--ink)" stroke-width="2" stroke-dasharray="5 4"/>`;
+  s += `<text class="tick" x="${right ? tx - 6 : tx + 6}" y="14" text-anchor="${right ? 'end' : 'start'}">valor real ${fmt(truth)}</text>`;
+  return s + '</svg>';
+}
+function niceRange(vals, truth){
+  const lo0 = Math.min(truth, Math.min.apply(null, vals)), hi0 = Math.max(truth, Math.max.apply(null, vals)), pad = Math.max((hi0 - lo0) * 0.06, 0.5);
+  const ts = tickStep(hi0 - lo0 + 2 * pad);
+  return [Math.floor((lo0 - pad) / ts) * ts, Math.ceil((hi0 + pad) / ts) * ts];
+}
+function doMany(){
+  const r = st.res, m = runMany(C, r.strat, r.n, REPS), rg = niceRange(m.est, C.truth);
+  $('#manyOut').innerHTML = `<h3>${stratName(r.strat)}, ${REPS} repeticiones</h3>` +
+    histSVG(m.est, rg[0], rg[1], C.truth, 'Distribución de las estimaciones en ' + REPS + ' repeticiones') +
+    `<p class="note">Cada barra cuenta cuántas muestras dieron esa estimación (${C.unit}). Sesgo: distancia entre el centro de las barras y la línea del valor real. Precisión: qué tan estrechas son las barras.</p>
+    <p><strong>Sesgo:</strong> ${m.bias > 0 ? '+' : ''}${fmt(m.bias, 2)} · <strong>Variabilidad (DE):</strong> ${fmt(m.sd, 2)} · <strong>IC que incluyó el valor real:</strong> ${isFinite(m.cov) ? fmt(m.cov, 0) + ' % de las veces' : 'este diseño no produce intervalo'}</p>`;
+}
+function doCompare(){
+  const n = st.res.n, out = C.strategies.map(x => ({ k: x.k, m: runMany(C, x.k, n, REPS) }));
+  const all = [].concat(...out.map(o => o.m.est)), rg = niceRange(all, C.truth);
+  const exH = C.extra ? `<th class="num">${C.extra.label}</th>` : '';
+  const rows = out.map(o => `<tr><td>${stratName(o.k)}</td><td class="num">${o.m.bias > 0 ? '+' : ''}${fmt(o.m.bias, 2)}</td><td class="num">${fmt(o.m.sd, 2)}</td><td class="num">${isFinite(o.m.cov) ? fmt(o.m.cov, 0) + ' %' : 'sin intervalo'}</td>${C.extra ? `<td class="num">${fmt(o.m.ext, 0)} %</td>` : ''}<td class="num">${fmt(o.m.cost)}${o.m.cost > C.budget ? ' (supera el presupuesto)' : ''}</td></tr>`).join('');
+  $('#cmpOut').innerHTML = `<h3 style="font-size:1.05rem">Las estrategias con el esfuerzo que elegiste (${n}), ${REPS} repeticiones cada una</h3>
+    <div class="scroll"><table><thead><tr><th>Estrategia</th><th class="num">Sesgo</th><th class="num">Variabilidad (DE)</th><th class="num">IC con el valor real</th>${exH}<th class="num">Jornadas promedio</th></tr></thead><tbody>${rows}</tbody></table></div>
+    <p class="note" style="margin-top:8px">Busca un sesgo cercano a cero, poca variabilidad, un IC que incluya el valor real cerca del 95 % de las veces y un costo que entre en el presupuesto (${C.budget} jornadas).</p>` +
+    out.map(o => `<h3>${stratName(o.k)}</h3>` + histSVG(o.m.est, rg[0], rg[1], C.truth, 'Distribución de las estimaciones con ' + stratName(o.k))).join('');
+}
+function renderClosing(){
+  const ta = $('#fund');
+  if(!ta.value.trim() && st.res){
+    const r = st.res, g = r.e.g;
+    ta.value = `Caso: ${C.title}.\nEstrategia elegida: ${stratName(r.strat)} (${C.sizeText(r)}).\nResultado: estimación ${fmt(g.m)}${isFinite(g.lo) ? ' (IC 95 %: ' + fmt(g.lo) + ' a ' + fmt(g.hi) + ')' : ''} ${C.unit}; valor real ${fmt(C.truth)}.\n\nPor qué la elegí:\n\nSesgos o limitaciones que identifiqué:\n\nHasta dónde puedo generalizar:\n`;
+  }
+}
+
+document.addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  if(b.dataset.go) go(+b.dataset.go);
+  if(b.dataset.case && +b.dataset.case !== C.id) setCase(+b.dataset.case);
+  if(b.dataset.q !== undefined){
+    const q = C.quiz[+b.dataset.q], o = q.o[+b.dataset.o];
+    document.querySelectorAll(`[data-q="${b.dataset.q}"]`).forEach(x => x.classList.remove('ok', 'no'));
+    b.classList.add(o.ok ? 'ok' : 'no');
+    $('#qf' + b.dataset.q).textContent = o.f;
+  }
+});
+$('#to2').onclick = () => go(2);
+$('#back1').onclick = () => go(1);
+$('#back2').onclick = () => go(2);
+$('#to4').onclick = () => go(4);
+$('#takeSample').onclick = take;
+$('#again').onclick = take;
+$('#many').onclick = doMany;
+$('#cmp').onclick = doCompare;
+$('#restart').onclick = () => go(2);
+$('#heat').onchange = e => { st.heat = e.target.checked; drawMap3(); };
+$('#nRange').oninput = e => { st.n = +e.target.value; $('#nOut').textContent = st.n; renderPreview(); };
+$('#stratOpts').onchange = e => { if(e.target.name === 'strat'){ st.strat = e.target.value; renderPreview(); } };
+$('#copy').onclick = async () => {
+  const ta = $('#fund'), msg = $('#copyMsg');
+  try { await navigator.clipboard.writeText(ta.value); msg.textContent = 'Texto copiado. Pégalo en el foro.'; }
+  catch(err){ ta.focus(); ta.select(); msg.textContent = 'Tu navegador no permitió copiar automáticamente. El texto quedó seleccionado: cópialo con Ctrl+C.'; }
+};
+
+buildCase();
+renderSteps();
+</script>
+</body>
+</html>
