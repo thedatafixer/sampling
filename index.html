@@ -136,23 +136,67 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
     <p class="kicker">Parada 2 · Diseño metodológico</p>
     <h1>Elegir el muestreo</h1>
     <p class="byline">Ivana Laura Galera · Pablo Emanuel · Aldana Tavarone · Lourdes M. Suárez Villasmil</p>
-    <p class="lead">Elige un caso, decide cómo muestrear y mira qué pasa con el resultado. En estas simulaciones conocemos el valor real, algo que en una investigación de verdad nunca se sabe.</p>
-    <ul class="cases" id="cases" aria-label="Casos disponibles"></ul>
   </header>
 
   <ol class="steps" id="steps"></ol>
 
   <main>
-    <!-- Paso 1 -->
-    <section id="s1" class="panel on" aria-labelledby="t1">
+    <!-- Pantalla 1: bienvenida y orientación -->
+    <section id="s1" class="panel on" aria-labelledby="t0">
       <div class="grid">
         <div class="stack">
           <div class="card">
+            <h2 id="t0">Bienvenida y orientación</h2>
+            <p>Este material forma parte de la Diplomatura Universitaria de Estudios Avanzados <strong>“Enseñar a Distancia”</strong> de la Universidad Nacional de Córdoba y se enmarca en la propuesta de formación extracurricular a distancia <strong>“Del campo al manuscrito: recorrido integrado del proceso de investigación en Ciencias Biológicas”</strong>, destinada a estudiantes avanzados/as, tesistas y graduados/as recientes de Ciencias Biológicas de la FCEFyN-UNC.</p>
+            <p>En esta parada trabajas el diseño metodológico, en particular la elección de una estrategia de muestreo. En estas simulaciones conocemos el valor real, algo que en una investigación de verdad nunca se sabe. Eso te permite ver, con tus propios ojos, qué le pasa al resultado según cómo hayas muestreado.</p>
+          </div>
+          <div class="card">
+            <h3>Qué vas a hacer</h3>
+            <ol class="crit">
+              <li><strong>Bienvenida y orientación:</strong> eliges un caso de investigación.</li>
+              <li><strong>Presentación del problema:</strong> conoces el sistema, el objetivo y las restricciones.</li>
+              <li><strong>Identificación de criterios:</strong> decides qué aspectos del problema condicionan el muestreo.</li>
+              <li><strong>Elección de una estrategia:</strong> eliges el diseño y el esfuerzo.</li>
+              <li><strong>Análisis de sus consecuencias:</strong> tomas la muestra y comparas con el valor real.</li>
+              <li><strong>Revisión de la decisión:</strong> pones a prueba lo que entendiste.</li>
+              <li><strong>Cierre y transferencia:</strong> fundamentas tu decisión y la llevas a tu propio proyecto.</li>
+            </ol>
+          </div>
+        </div>
+        <div class="stack">
+          <div class="card">
+            <h3>Elige un caso</h3>
+            <p class="note">Puedes volver aquí en cualquier momento para cambiar de caso.</p>
+            <ul class="cases" id="cases" aria-label="Casos disponibles"></ul>
+            <p class="note" id="caseBlurb" style="margin-top:10px"></p>
+          </div>
+          <div class="card">
+            <h3>Qué vas a lograr</h3>
+            <ul class="crit">
+              <li>Justificar una estrategia de muestreo a partir del problema, no de la costumbre.</li>
+              <li>Reconocer cómo el diseño produce sesgo o imprecisión.</li>
+              <li>Considerar la factibilidad (tiempo, costo y acceso) como parte del diseño.</li>
+            </ul>
+            <div class="actions"><button class="btn" type="button" id="to2">Comenzar con este caso</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pantalla 2: problema -->
+    <section id="s2" class="panel" aria-labelledby="t1">
+      <div class="grid">
+        <div class="stack">
+          <div class="card">
+            <p class="kicker">Presentación del problema</p>
             <h2 id="t1"></h2>
             <div id="intro"></div>
           </div>
           <div class="card scroll" id="infoCard"></div>
-          <div class="actions" style="margin-top:0"><button class="btn" type="button" id="to2">Diseñar el muestreo</button></div>
+          <div class="actions" style="margin-top:0">
+            <button class="btn ghost" type="button" data-go="1">Volver a la bienvenida</button>
+            <button class="btn" type="button" id="to3">Identificar criterios</button>
+          </div>
         </div>
         <div class="card">
           <div id="map1"></div>
@@ -161,11 +205,39 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
       </div>
     </section>
 
-    <!-- Paso 2 -->
-    <section id="s2" class="panel" aria-labelledby="t2">
+    <!-- Pantalla 3: criterios -->
+    <section id="s3" class="panel" aria-labelledby="t3c">
       <div class="grid">
         <div class="stack">
           <div class="card">
+            <p class="kicker">Identificación de criterios para muestrear</p>
+            <h2 id="t3c">¿Qué del problema condiciona el muestreo?</h2>
+            <p class="note">Antes de elegir un diseño, identifica qué características del caso importan. Estos son los cuatro criterios que conviene revisar y cómo aparecen en este caso.</p>
+            <div id="critList"></div>
+          </div>
+          <div class="card">
+            <h3>Tu criterio principal</h3>
+            <p class="note">¿Cuál de los cuatro pesará más en tu decisión?</p>
+            <fieldset class="opts" id="critOpts" style="margin-top:8px"></fieldset>
+          </div>
+          <div class="actions" style="margin-top:0">
+            <button class="btn ghost" type="button" data-go="2">Volver al problema</button>
+            <button class="btn" type="button" id="to4c">Elegir una estrategia</button>
+          </div>
+        </div>
+        <div class="card">
+          <div id="map0"></div>
+          <div class="legend" id="legend0"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pantalla 4: estrategia -->
+    <section id="s4" class="panel" aria-labelledby="t2">
+      <div class="grid">
+        <div class="stack">
+          <div class="card">
+            <p class="kicker">Elección de una estrategia</p>
             <h2 id="t2">Diseña tu muestreo</h2>
             <fieldset class="opts" id="stratOpts">
               <legend>¿Cómo eliges las unidades de muestreo?</legend>
@@ -190,7 +262,7 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
             </div>
             <div class="actions">
               <button class="btn" type="button" id="takeSample">Tomar la muestra en el campo</button>
-              <button class="btn ghost" type="button" id="back1">Volver al problema</button>
+              <button class="btn ghost" type="button" data-go="3">Volver a los criterios</button>
             </div>
           </div>
         </div>
@@ -201,9 +273,10 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
       </div>
     </section>
 
-    <!-- Paso 3 -->
-    <section id="s3" class="panel" aria-labelledby="t3">
-      <h2 id="t3">Consecuencias de tu decisión</h2>
+    <!-- Pantalla 5: consecuencias -->
+    <section id="s5" class="panel" aria-labelledby="t5">
+      <p class="kicker" style="margin:0">Análisis de sus consecuencias</p>
+      <h2 id="t5">Consecuencias de tu decisión</h2>
       <div class="grid" style="margin-top:10px">
         <div class="stack">
           <div id="tiles"></div>
@@ -221,8 +294,8 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
             <div id="cmpOut" class="cmp" style="margin-top:12px"></div>
           </div>
           <div class="actions" style="margin-top:0">
-            <button class="btn ghost" type="button" id="back2">Cambiar mi diseño</button>
-            <button class="btn" type="button" id="to4">Revisar y cerrar</button>
+            <button class="btn ghost" type="button" data-go="4">Cambiar mi diseño</button>
+            <button class="btn" type="button" id="to6">Revisar mi decisión</button>
           </div>
         </div>
         <div class="card">
@@ -233,16 +306,29 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
       </div>
     </section>
 
-    <!-- Paso 4 -->
-    <section id="s4" class="panel" aria-labelledby="t4">
+    <!-- Pantalla 6: revisión -->
+    <section id="s6" class="panel" aria-labelledby="t6">
+      <div class="stack" style="max-width:760px">
+        <div class="card">
+          <p class="kicker">Revisión de la decisión</p>
+          <h2 id="t6">Revisa tu decisión</h2>
+          <div id="revSummary" class="note" style="margin-bottom:10px"></div>
+          <div id="quiz"></div>
+        </div>
+        <div class="actions" style="margin-top:0">
+          <button class="btn ghost" type="button" data-go="4">Probar otro diseño</button>
+          <button class="btn" type="button" id="to7">Pasar al cierre</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Pantalla 7: cierre y transferencia -->
+    <section id="s7" class="panel" aria-labelledby="t7">
       <div class="grid">
         <div class="stack">
           <div class="card">
-            <h2 id="t4">Revisa tu decisión</h2>
-            <div id="quiz"></div>
-          </div>
-          <div class="card">
-            <h3>Criterios para llevarte</h3>
+            <p class="kicker">Cierre y transferencia</p>
+            <h2 id="t7">Lo que te llevas</h2>
             <ul class="crit">
               <li>La estrategia sale del problema: qué quieres estimar y para qué población.</li>
               <li>Si el sistema es heterogéneo, estratificar o repartir bien las unidades mejora la precisión y asegura representación.</li>
@@ -251,10 +337,20 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
               <li>Los límites del diseño definen hasta dónde puedes generalizar tus conclusiones.</li>
             </ul>
           </div>
+          <div class="card">
+            <h3>Transfiérelo a tu proyecto</h3>
+            <p class="note">Aplica los mismos criterios a tu propio anteproyecto o al caso que te asignen:</p>
+            <ul class="crit">
+              <li>¿Qué quieres estimar y en qué población?</li>
+              <li>¿Qué hace heterogéneo a tu sistema (espacio, tiempo, hábitat)?</li>
+              <li>¿Qué puedes alcanzar con tu tiempo, presupuesto y acceso?</li>
+              <li>¿Qué sesgo es el más probable con el diseño que piensas usar?</li>
+            </ul>
+          </div>
         </div>
         <div class="card">
           <h3>Fundamenta tu decisión</h3>
-          <p class="note">Completa el texto con tus palabras y cópialo para el foro de coevaluación. Después aplica los mismos criterios a tu propio anteproyecto o al caso que te asignen.</p>
+          <p class="note">Completa el texto con tus palabras y cópialo para el foro de coevaluación.</p>
           <label for="fund" class="note">Tu fundamentación</label>
           <textarea id="fund"></textarea>
           <div class="actions">
@@ -268,6 +364,7 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
   </main>
 
   <footer class="credits">
+    <p>Material de la Diplomatura Universitaria de Estudios Avanzados “Enseñar a Distancia” (Universidad Nacional de Córdoba), en el marco de la propuesta “Del campo al manuscrito: recorrido integrado del proceso de investigación en Ciencias Biológicas”.</p>
     <p><strong>Autores:</strong> Ivana Laura Galera, Pablo Emanuel, Aldana Tavarone, Lourdes M. Suárez Villasmil</p>
     <p>Universidad Nacional de Córdoba · Facultad de Ciencias Exactas, Físicas y Naturales</p>
     <p><strong>Web-manager:</strong> <a href="mailto:lourdes.suarez.villasmil@unc.edu.ar">lourdes.suarez.villasmil@unc.edu.ar</a></p>
@@ -1092,6 +1189,17 @@ function makeCase7(){
 
 const CASES = { 1: makeCase1(), 2: makeCase2(), 3: makeCase3(), 4: makeCase4(), 5: makeCase5(), 6: makeCase6(), 7: makeCase7() };
 
+const CRIT_T = ['Qué quiero estimar y en qué población', 'Heterogeneidad del sistema', 'Acceso, costo y presupuesto', 'Riesgo de sesgo o de imprecisión'];
+const CRITERIA = {
+  1: ['Riqueza media de especies leñosas por parcela en todo el sector (400 parcelas) y, si es posible, en cada piso.', 'Tres pisos de vegetación (bosque, pastizal y roquedal) con superficies muy distintas y, probablemente, riqueza distinta.', 'Solo se puede visitar una parte del sector, con un presupuesto de campo limitado. Algunos pisos son más caros de visitar que otros.', 'Las parcelas cercanas al camino están perturbadas: elegir por comodidad sesga. Un piso pequeño con pocas parcelas da un intervalo ancho.'],
+  2: ['Riqueza media de familias de macroinvertebrados de todo el arroyo (120 sitios de 100 m), y si cambia entre la naciente y el tramo urbano.', 'El cauce alterna rápidos y pozas con un patrón regular, y el tramo urbano difiere de la naciente.', 'El presupuesto de campo es limitado y cada diseño tiene un costo distinto por sitio.', 'Un espaciado regular puede coincidir con la alternancia de hábitats y mostrar siempre el mismo tipo de sitio.'],
+  3: ['Porcentaje de viviendas infestadas con vinchucas en toda el área (1000 viviendas en 40 poblados).', 'Las viviendas de un mismo poblado se parecen entre sí, y los poblados sobre la ruta pueden diferir de los alejados.', 'Llegar a un poblado cuesta jornadas, más si está alejado de la ruta. Visitar muchos poblados agota el presupuesto.', 'Muestrear solo cerca de la ruta deja fuera a los poblados alejados. Muestrear pocos poblados aumenta la variabilidad.'],
+  4: ['Número medio de neonatos por hembra en todo el cultivo (300 recipientes en 6 estantes).', 'Los estantes pueden diferir entre sí; el estante frontal, junto a la puerta, no se comporta como el resto.', 'No alcanza el tiempo para contar todos los recipientes, y alcanzar el fondo de la cámara lleva más tiempo.', 'Tomar solo el estante más accesible sesga hacia las condiciones de ese estante, aunque el intervalo salga estrecho.'],
+  5: ['Número de individuos de la población en toda la reserva.', 'Los individuos están agrupados y se mueven, así que su distribución no es uniforme.', 'No se puede contar toda la población de una vez, y recorrer la reserva consume jornadas.', 'No se detecta a todos los individuos, y eso subestima la abundancia si no se corrige.'],
+  6: ['Número medio de plantas por parcela en un sector de 400 parcelas.', 'La especie es rara y está agrupada en pocos parches, casi todas las parcelas están vacías.', 'Inspeccionar cada parcela cuesta jornadas, y el presupuesto limita cuántas puedes mirar.', 'Con una especie rara, muchas muestras no caen en ningún parche y las estimaciones varían muchísimo entre muestras.'],
+  7: ['Número total de especies de plantas del humedal en un ciclo anual.', 'La lámina de agua cambia de la orilla al centro y también con las épocas: la riqueza por parcela es parecida, pero las especies se reemplazan.', 'Cada campaña de una época tiene un costo fijo de logística, además del costo por parcela. Cerca de la orilla se llega a pie.', 'Muestrear una sola época o solo la orilla deja fuera especies que nunca entran en la muestra.']
+};
+
 function runMany(C, strat, n, reps){
   const est = [], cov = [], ext = [], cs = []; let withCI = 0;
   for(let k = 0; k < reps; k++){
@@ -1107,32 +1215,35 @@ function runMany(C, strat, n, reps){
 
 /* ---------- Interfaz ---------- */
 const $ = s => document.querySelector(s);
-const STEPS = ['El problema', 'Tu diseño', 'Consecuencias', 'Revisión y cierre'];
+const STEPS = ['Bienvenida', 'El problema', 'Criterios', 'Estrategia', 'Consecuencias', 'Revisión', 'Cierre'];
 let C = CASES[1];
-const st = { step: 1, strat: 'srs', n: 30, res: null, heat: false };
+const st = { step: 1, strat: 'srs', n: 30, res: null, heat: false, crit: null };
 const stratName = k => C.strategies.find(x => x.k === k).name;
 
 function renderSteps(){
   $('#steps').innerHTML = STEPS.map((t, i) => {
-    const n = i + 1, dis = n >= 3 && !st.res;
+    const n = i + 1, dis = n >= 5 && !st.res;
     return `<li><button class="stepbtn" type="button" data-go="${n}" ${n === st.step ? 'aria-current="step"' : ''} ${dis ? 'disabled' : ''}><b>${n}</b>${t}</button></li>`;
   }).join('');
 }
 function go(n){
-  if(n >= 3 && !st.res) return;
+  if(n >= 5 && !st.res) return;
   st.step = n;
   document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('on', i + 1 === n));
   renderSteps();
-  if(n === 2) renderPreview();
-  if(n === 3) renderResults();
-  if(n === 4) renderClosing();
+  if(n === 3) renderCriteria();
+  if(n === 4) renderPreview();
+  if(n === 5) renderResults();
+  if(n === 6) renderReview();
+  if(n === 7) renderClosing();
   const t = $('#steps'); if(t && t.scrollIntoView) t.scrollIntoView({ block: 'start' });
 }
 function buildCase(){
   $('#cases').innerHTML = Object.keys(CASES).map(k => `<li><button class="case" type="button" data-case="${k}" ${+k === C.id ? 'aria-current="true"' : ''}>Caso ${k} · ${CASES[k].short}</button></li>`).join('');
   $('#t1').textContent = C.title; $('#intro').innerHTML = C.intro; $('#infoCard').innerHTML = C.info;
-  $('#map1').innerHTML = C.mapSVG('m1', {});
-  ['#legend1', '#legend2', '#legend3'].forEach(s => { $(s).innerHTML = C.legend; });
+  $('#map1').innerHTML = C.mapSVG('m1', {}); $('#map0').innerHTML = C.mapSVG('m0', {});
+  $('#caseBlurb').innerHTML = 'Caso elegido: <strong>' + C.title + '</strong>';
+  ['#legend0', '#legend1', '#legend2', '#legend3'].forEach(s => { $(s).innerHTML = C.legend; });
   $('#heatLabel').textContent = C.heatLabel; $('#heat').checked = false;
   $('#stratOpts').innerHTML = '<legend>¿Cómo eliges las unidades de muestreo?</legend>' + C.strategies.map(x =>
     `<label class="opt"><input type="radio" name="strat" value="${x.k}" ${x.k === st.strat ? 'checked' : ''}><div><strong>${x.name}</strong><span>${x.desc}</span></div></label>`).join('');
@@ -1141,8 +1252,17 @@ function buildCase(){
   $('#manyOut').innerHTML = ''; $('#cmpOut').innerHTML = '';
 }
 function setCase(id){
-  C = CASES[id]; st.strat = C.strategies[0].k; st.n = C.nDef; st.res = null; st.heat = false; $('#fund').value = '';
+  C = CASES[id]; st.strat = C.strategies[0].k; st.n = C.nDef; st.res = null; st.heat = false; st.crit = null; $('#fund').value = '';
   buildCase(); go(1);
+}
+function renderCriteria(){
+  $('#critList').innerHTML = CRITERIA[C.id].map((t, i) => `<div class="fb" style="margin-top:10px"><p><strong>${i + 1}. ${CRIT_T[i]}</strong></p><p>${t}</p></div>`).join('');
+  $('#critOpts').innerHTML = CRIT_T.map((t, i) => `<label class="opt"><input type="radio" name="crit" value="${i}" ${st.crit === i ? 'checked' : ''}><div><strong>${t}</strong></div></label>`).join('');
+  $('#map0').innerHTML = C.mapSVG('m0', {});
+}
+function renderReview(){
+  const r = st.res, g = r.e.g, hasCI = isFinite(g.lo) && isFinite(g.hi);
+  $('#revSummary').innerHTML = `Tu decisión: <strong>${stratName(r.strat)}</strong> (${C.sizeText(r)}). Estimaste ${fmt(g.m)} ${C.unit} y el valor real era ${fmt(C.truth)}${hasCI ? ' (IC 95 %: ' + fmt(g.lo) + ' a ' + fmt(g.hi) + ')' : ''}. Responde las preguntas pensando en lo que viste.`;
 }
 function renderPreview(){
   $('#nLabel').textContent = C.nLabel(st.strat);
@@ -1161,7 +1281,7 @@ function take(){
   const s = C.draw(st.strat, st.n), e = C.estimate(st.strat, s);
   st.res = { strat: st.strat, n: st.n, s, e, cost: C.cost(st.strat, s, st.n) };
   $('#manyOut').innerHTML = ''; $('#cmpOut').innerHTML = '';
-  go(3);
+  go(5);
 }
 function drawMap3(){ $('#map3').innerHTML = C.mapSVG('m3', { sample: st.res ? st.res.s : null, heat: st.heat }); }
 function renderResults(){
@@ -1219,7 +1339,7 @@ function renderClosing(){
   const ta = $('#fund');
   if(!ta.value.trim() && st.res){
     const r = st.res, g = r.e.g;
-    ta.value = `Caso: ${C.title}.\nEstrategia elegida: ${stratName(r.strat)} (${C.sizeText(r)}).\nResultado: estimación ${fmt(g.m)}${isFinite(g.lo) ? ' (IC 95 %: ' + fmt(g.lo) + ' a ' + fmt(g.hi) + ')' : ''} ${C.unit}; valor real ${fmt(C.truth)}.\n\nPor qué la elegí:\n\nSesgos o limitaciones que identifiqué:\n\nHasta dónde puedo generalizar:\n`;
+    ta.value = `Caso: ${C.title}.\nEstrategia elegida: ${stratName(r.strat)} (${C.sizeText(r)}).\nResultado: estimación ${fmt(g.m)}${isFinite(g.lo) ? ' (IC 95 %: ' + fmt(g.lo) + ' a ' + fmt(g.hi) + ')' : ''} ${C.unit}; valor real ${fmt(C.truth)}.\n\nCriterio que más pesó en mi decisión: ${st.crit === null ? '' : CRIT_T[st.crit] + '.'}\n\nPor qué la elegí:\n\nSesgos o limitaciones que identifiqué:\n\nHasta dónde puedo generalizar:\n`;
   }
 }
 
@@ -1235,14 +1355,16 @@ document.addEventListener('click', e => {
   }
 });
 $('#to2').onclick = () => go(2);
-$('#back1').onclick = () => go(1);
-$('#back2').onclick = () => go(2);
-$('#to4').onclick = () => go(4);
+$('#to3').onclick = () => go(3);
+$('#to4c').onclick = () => go(4);
+$('#to6').onclick = () => go(6);
+$('#to7').onclick = () => go(7);
+document.addEventListener('change', e => { if(e.target.name === 'crit') st.crit = +e.target.value; });
 $('#takeSample').onclick = take;
 $('#again').onclick = take;
 $('#many').onclick = doMany;
 $('#cmp').onclick = doCompare;
-$('#restart').onclick = () => go(2);
+$('#restart').onclick = () => go(4);
 $('#heat').onchange = e => { st.heat = e.target.checked; drawMap3(); };
 $('#nRange').oninput = e => { st.n = +e.target.value; $('#nOut').textContent = st.n; renderPreview(); };
 $('#stratOpts').onchange = e => { if(e.target.name === 'strat'){ st.strat = e.target.value; renderPreview(); } };
