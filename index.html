@@ -35,6 +35,7 @@
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+[hidden]{display:none!important}
 html,body{margin:0}
 body{background:var(--bg);color:var(--ink);font:16px/1.55 var(--body)}
 .wrap{max-width:1060px;margin:0 auto;padding:22px 16px 56px}
@@ -136,6 +137,7 @@ textarea{width:100%;min-height:170px;font:inherit;font-size:.93rem;padding:10px 
     <p class="kicker">Parada 2 · Diseño metodológico</p>
     <h1>Elige tu propia aventura</h1>
     <p class="byline">Ivana Laura Galera · Pablo Emanuel · Aldana Tavarone · Lourdes M. Suárez Villasmil</p>
+    <ul class="cases" id="casesBar" aria-label="Cambiar de caso" hidden></ul>
   </header>
 
   <ol class="steps" id="steps"></ol>
@@ -1127,8 +1129,8 @@ function makeCase7(){
       s += `<text class="lbl" x="${x0}" y="${y0 + 11}">${EP[t]}</text>`;
       for(let p = 0; p < NP; p++){
         const x = p % W, y = Math.floor(p / W), d = depth(p, t), cx = x0 + x * cs, cy = y0 + 16 + y * cs;
-        const fill = o.heat ? (d <= 0 ? `fill="var(--pastizal)" fill-opacity=".35"` : `fill="var(--agua)" fill-opacity="${(0.15 + 0.85 * Math.min(d / 120, 1)).toFixed(2)}"`) : `fill="var(--surface-2)" stroke="var(--line)" stroke-width=".6"`;
-        s += `<rect ${fill} x="${cx + 0.5}" y="${cy + 0.5}" width="${cs - 1}" height="${cs - 1}" rx="1.5"><title>${EP[t]}, ${o.heat ? (d <= 0 ? 'suelo sin agua' : 'lámina de agua de ' + Math.round(d) + ' cm') : 'parcela'}</title></rect>`;
+        const fill = d <= 0 ? `fill="var(--pastizal)" fill-opacity=".75"` : `fill="var(--agua)" fill-opacity="${(0.25 + 0.75 * Math.min(d / 110, 1)).toFixed(2)}"`;
+        s += `<rect ${fill} x="${cx + 0.5}" y="${cy + 0.5}" width="${cs - 1}" height="${cs - 1}" rx="1.5"><title>${EP[t]}, ${d <= 0 ? 'suelo sin agua' : 'lámina de agua de ' + Math.round(d) + ' cm'}</title></rect>`;
         if(mark.has(t * NP + p)) s += `<circle cx="${cx + cs / 2}" cy="${cy + cs / 2}" r="3" fill="var(--accent)" stroke="var(--ink)" stroke-width="1"/>`;
       }
       s += `<text class="lbl" x="${x0}" y="${y0 + 16 + HH * cs + 9}" style="font-size:8px">orilla</text><text class="lbl" x="${x0 + W * cs}" y="${y0 + 16 + HH * cs + 9}" text-anchor="end" style="font-size:8px">centro</text>`;
@@ -1157,7 +1159,7 @@ function makeCase7(){
     info: `<h3>Lo que sabes antes de decidir</h3>` + tbl(['Época', 'Lámina en la orilla (cm)', 'Lámina en el centro (cm)'], F.map((f, t) => [EP[t], fmt(Math.max(0, -10 + f), 0), fmt(66 + f, 0)])) +
       `<ul class="crit"><li><strong>Parcelas:</strong> 160 por época (8 filas por 20 columnas), de la orilla al centro.</li><li><strong>Presupuesto:</strong> 20 jornadas de campo.</li><li><strong>Costo:</strong> cada parcela visitada cuesta 0,15 jornadas, y cada campaña de una época suma 1,5 jornadas de logística (bote, botas, traslado). Cerca de la orilla se llega a pie: 0,10 por parcela y 0,5 por campaña.</li><li><strong>Estimador:</strong> Chao2, que usa cuántas especies aparecen en una sola unidad y en dos unidades para estimar las que no se vieron. Es un límite inferior.</li></ul>`,
     legend: `<span><i class="dot dW"></i>Lámina de agua (más oscuro, más profundo)</span><span><i class="dot d1"></i>Suelo sin agua</span><span>En cada mapa, la orilla está a la izquierda y el centro a la derecha.</span><span>Círculo: unidad muestreada (parcela en una época).</span>`,
-    heatLabel: 'Ver la lámina de agua en cada época',
+    heatLabel: '', noHeat: true,
     mapSVG: (id, o) => mapSVG(id, { sample: o.sample, heat: o.heat }),
     draw, estimate, cost,
     preview(strat, n){
@@ -1174,7 +1176,7 @@ function makeCase7(){
       { q: '¿Por qué muestrear solo en la época seca subestima la riqueza total, aunque se visiten muchas parcelas?', o: [
         { t: 'Porque muchas especies solo están presentes cuando la lámina de agua es otra, y en esa época no se las puede encontrar.', ok: true, f: 'Correcto. Más parcelas en la misma época agregan poca información nueva: las especies de otras épocas no están disponibles en esa muestra.' },
         { t: 'Porque en la época seca cada parcela tiene menos especies.', ok: false, f: 'No: la riqueza por parcela es parecida en todas las épocas. Lo que cambia son las especies.' },
-        { t: 'Porque Chao2 no funciona con muchas parcelas.', ok: false, f: 'Chao2 funciona con muchas unidades. El problema es que el diseño nunca observa buena parte de las especies.' } ] },
+        { t: 'Porque los índices de diversidad no funcionan con muchas parcelas.', ok: false, f: 'El problema no es el índice de diversidad, sino que el diseño nunca observa las especies que llegan con la inundación.' } ] },
       { q: 'La riqueza por parcela es parecida en todas las épocas, pero casi no se repiten las especies. ¿Qué indica esto?', o: [
         { t: 'Que hay un fuerte recambio de especies: la diversidad local se mantiene, pero cambia su composición.', ok: true, f: 'Correcto. Es una diversidad beta alta en el tiempo, resultado de que cada especie ocupa un rango de profundidad distinto.' },
         { t: 'Que no hay recambio, porque la riqueza no cambia.', ok: false, f: 'La riqueza por parcela puede ser constante aunque todas las especies sean reemplazadas.' },
@@ -1228,7 +1230,7 @@ function renderSteps(){
 }
 function go(n){
   if(n >= 5 && !st.res) return;
-  st.step = n;
+  st.step = n; $('#casesBar').hidden = n === 1;
   document.querySelectorAll('.panel').forEach((p, i) => p.classList.toggle('on', i + 1 === n));
   renderSteps();
   if(n === 3) renderCriteria();
@@ -1239,12 +1241,12 @@ function go(n){
   const t = $('#steps'); if(t && t.scrollIntoView) t.scrollIntoView({ block: 'start' });
 }
 function buildCase(){
-  $('#cases').innerHTML = Object.keys(CASES).map(k => `<li><button class="case" type="button" data-case="${k}" ${+k === C.id ? 'aria-current="true"' : ''}>Caso ${k} · ${CASES[k].short}</button></li>`).join('');
+  $('#casesBar').innerHTML = $('#cases').innerHTML = Object.keys(CASES).map(k => `<li><button class="case" type="button" data-case="${k}" ${+k === C.id ? 'aria-current="true"' : ''}>Caso ${k} · ${CASES[k].short}</button></li>`).join('');
   $('#t1').textContent = C.title; $('#intro').innerHTML = C.intro; $('#infoCard').innerHTML = C.info;
   $('#map1').innerHTML = C.mapSVG('m1', {}); $('#map0').innerHTML = C.mapSVG('m0', {});
   $('#caseBlurb').innerHTML = 'Caso elegido: <strong>' + C.title + '</strong>';
   ['#legend0', '#legend1', '#legend2', '#legend3'].forEach(s => { $(s).innerHTML = C.legend; });
-  $('#heatLabel').textContent = C.heatLabel; $('#heat').checked = false;
+  $('#heatLabel').textContent = C.heatLabel; $('#heat').closest('label').hidden = !!C.noHeat; $('#heat').checked = false;
   $('#stratOpts').innerHTML = '<legend>¿Cómo eliges las unidades de muestreo?</legend>' + C.strategies.map(x =>
     `<label class="opt"><input type="radio" name="strat" value="${x.k}" ${x.k === st.strat ? 'checked' : ''}><div><strong>${x.name}</strong><span>${x.desc}</span></div></label>`).join('');
   const rg = $('#nRange'); rg.min = C.nMin; rg.max = C.nMax; rg.step = C.nStep || 1; rg.value = st.n; $('#nOut').textContent = st.n;
@@ -1253,7 +1255,7 @@ function buildCase(){
 }
 function setCase(id){
   C = CASES[id]; st.strat = C.strategies[0].k; st.n = C.nDef; st.res = null; st.heat = false; st.crit = null; $('#fund').value = '';
-  buildCase(); go(1);
+  buildCase(); go(st.step === 1 ? 1 : 2);
 }
 function renderCriteria(){
   $('#critList').innerHTML = CRITERIA[C.id].map((t, i) => `<div class="fb" style="margin-top:10px"><p><strong>${i + 1}. ${CRIT_T[i]}</strong></p><p>${t}</p></div>`).join('');
